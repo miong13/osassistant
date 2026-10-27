@@ -36,6 +36,24 @@ export function toOpenAIMessages(system: string, messages: ChatMessage[]): ChatC
   return out
 }
 
+/**
+ * Some gateways list models that only work through other API formats. Returns a check for which
+ * listed models can be used through chat completions, or null to keep them all.
+ */
+export function chatModelFilter(baseUrl: string): ((id: string) => boolean) | null {
+  let host = ''
+  try {
+    host = new URL(baseUrl).hostname
+  } catch {
+    return null
+  }
+  // OpenCode Zen / Go: Claude, GPT, Gemini, Grok etc. use other formats, and free models only work inside OpenCode.
+  if (host === 'opencode.ai' || host.endsWith('.opencode.ai')) {
+    return (id) => /^(deepseek|glm|kimi|minimax|mistral|qwen3\.8-max)/.test(id) && !id.endsWith('-free')
+  }
+  return null
+}
+
 /** Works with any service that speaks the OpenAI chat-completions format (LM Studio, OpenRouter, Groq...). */
 export class OpenAICompatibleProvider implements ChatProvider {
   private client: OpenAI
@@ -52,7 +70,10 @@ export class OpenAICompatibleProvider implements ChatProvider {
     const extra = this.extraModels.map((id) => ({ id, label: id }))
     try {
       const listed: ModelInfo[] = []
-      for await (const m of this.client.models.list()) listed.push({ id: m.id, label: m.id })
+      const usable = chatModelFilter(this.baseUrl)
+      for await (const m of this.client.models.list()) {
+        if (!usable || usable(m.id)) listed.push({ id: m.id, label: m.id })
+      }
       return [...extra, ...listed.filter((m) => !this.extraModels.includes(m.id))]
     } catch (err) {
       if (extra.length) return extra

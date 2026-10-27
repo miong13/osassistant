@@ -7,6 +7,8 @@ const PRESETS: { label: string; baseUrl: string; needsKey: boolean }[] = [
   { label: 'OpenAI', baseUrl: 'https://api.openai.com/v1', needsKey: true },
   { label: 'OpenRouter', baseUrl: 'https://openrouter.ai/api/v1', needsKey: true },
   { label: 'Groq', baseUrl: 'https://api.groq.com/openai/v1', needsKey: true },
+  { label: 'OpenCode Zen', baseUrl: 'https://opencode.ai/zen/v1', needsKey: true },
+  { label: 'OpenCode Go', baseUrl: 'https://opencode.ai/zen/go/v1', needsKey: true },
   { label: 'LM Studio (local)', baseUrl: 'http://localhost:1234/v1', needsKey: false },
   { label: 'Custom', baseUrl: '', needsKey: false }
 ]
