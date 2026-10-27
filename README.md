@@ -1,6 +1,37 @@
 # OS Assistant
 
+<p align="center">
+  <img src="docs/screenshots/chat.png" alt="Sticky, the default character, answering a question in the chat bubble" width="420">
+</p>
+
 A friendly character that floats on top of your desktop. Click it (or press the hotkey) to chat. Works with Claude, local Ollama models, or any OpenAI-compatible service, can open your apps, files and websites, and can use tools from MCP servers.
+
+Runs on macOS and Windows. Built with Electron, React and TypeScript.
+
+## Screenshots
+
+<table>
+  <tr>
+    <td width="50%">
+      <img src="docs/screenshots/ai-providers.png" alt="AI Providers settings">
+      <p align="center"><b>AI providers</b>: Claude, Ollama, OpenAI, OpenRouter, Groq, LM Studio or any compatible URL</p>
+    </td>
+    <td width="50%">
+      <img src="docs/screenshots/tools.png" alt="Tools settings">
+      <p align="center"><b>Tools</b>: open apps, files and websites, plus MCP servers, each with its own approval setting</p>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <img src="docs/screenshots/characters.png" alt="Characters settings">
+      <p align="center"><b>Characters</b>: Bolt, Mochi and Sticky built in, or add your own</p>
+    </td>
+    <td width="50%">
+      <img src="docs/screenshots/tips.png" alt="Tips settings">
+      <p align="center"><b>Tips</b>: daily greeting, break reminders, random tips and a clipboard helper</p>
+    </td>
+  </tr>
+</table>
 
 ## Run it
 
