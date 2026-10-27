@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="140" height="140" viewBox="0 0 140 140">
+<style>
+.t{transform-box:fill-box;transform-origin:center}
+.tb{transform-box:fill-box;transform-origin:50% 100%}
+.char{animation:breathe 4.5s ease-in-out infinite}
+@keyframes breathe{0%,100%{transform:scale(1,1)}50%{transform:scale(1.025,.975)}}
+.z{transform-box:fill-box;transform-origin:center;animation:zz 3.6s ease-in-out infinite}
+.z1{animation-delay:-2.4s}.z2{animation-delay:-1.2s}.z3{animation-delay:0s}
+@keyframes zz{0%{transform:translate(-4px,6px) scale(.8);opacity:0}20%{opacity:1}75%{opacity:1}100%{transform:translate(4px,-6px) scale(1.08);opacity:0}}
+</style>
+<ellipse class="t shadow" cx="70" cy="126" rx="36" ry="5" fill="#000" opacity=".2"/>
+<g class="tb char">
+  <path d="M30 20H110A6 6 0 0 1 116 26V86L90 112H30A6 6 0 0 1 24 106V26A6 6 0 0 1 30 20Z" fill="#FFE27A"/>
+  <path d="M30 20H110A6 6 0 0 1 116 26V33H24V26A6 6 0 0 1 30 20Z" fill="#FFD447"/>
+  <path d="M24 33H116" stroke="#6B4F12" stroke-opacity=".18" stroke-width="2"/>
+  <path d="M30 26H70" stroke="#fff" stroke-opacity=".55" stroke-width="3" stroke-linecap="round"/>
+  <path d="M116 86L90 112L93 100Q95 92 104 89Z" fill="#000" opacity=".1"/>
+  <path d="M116 86Q100 86 96 94Q92 102 90 112Z" fill="#F2BF2E" stroke="#6B4F12" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M110 89Q101 91 98 97" stroke="#fff" stroke-opacity=".5" stroke-width="2" stroke-linecap="round" fill="none"/>
+  <path d="M30 20H110A6 6 0 0 1 116 26V86L90 112H30A6 6 0 0 1 24 106V26A6 6 0 0 1 30 20Z" fill="none" stroke="#6B4F12" stroke-width="3" stroke-linejoin="round"/>
+  <ellipse cx="41" cy="77" rx="6.5" ry="3.8" fill="#FF8C7A" opacity=".55"/>
+  <ellipse cx="99" cy="77" rx="6.5" ry="3.8" fill="#FF8C7A" opacity=".55"/>
+  <path d="M47 61Q55 68 63 61" fill="none" stroke="#6B4F12" stroke-width="3.5" stroke-linecap="round"/><path d="M77 61Q85 68 93 61" fill="none" stroke="#6B4F12" stroke-width="3.5" stroke-linecap="round"/>
+  <ellipse cx="70" cy="84" rx="3.5" ry="3" fill="#7A2E1E" stroke="#6B4F12" stroke-width="2"/>
+</g>
+<g font-family="sans-serif" font-weight="bold" fill="#6B4F12" stroke="#fff" stroke-width="3" stroke-linejoin="round" style="paint-order:stroke">
+  <text class="z z1" x="92" y="48" font-size="13">z</text>
+  <text class="z z2" x="101" y="37" font-size="16">z</text>
+  <text class="z z3" x="111" y="26" font-size="20">Z</text>
+</g>
+</svg>

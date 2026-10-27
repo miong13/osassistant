@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="140" height="140" viewBox="0 0 140 140">
+<style>
+.t{transform-box:fill-box;transform-origin:center}
+.tb{transform-box:fill-box;transform-origin:50% 100%}
+.char{animation:tilt 3s ease-in-out infinite}
+@keyframes tilt{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(-5deg) translateY(-2px)}}
+.d{transform-box:fill-box;transform-origin:center;animation:dot 1.2s ease-in-out infinite}
+.d2{animation-delay:.2s}.d3{animation-delay:.4s}
+@keyframes dot{0%,60%,100%{transform:translateY(0);opacity:.35}30%{transform:translateY(-3px);opacity:1}}
+.bubble{transform-box:fill-box;transform-origin:0% 100%;animation:pop 2.4s ease-in-out infinite}
+@keyframes pop{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+.sprout{transform-box:fill-box;transform-origin:30% 100%;animation:sway 3.2s ease-in-out infinite}
+@keyframes sway{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(5deg)}}
+</style>
+<ellipse class="t shadow" cx="70" cy="125" rx="44" ry="5" fill="#000" opacity=".2"/>
+<g class="tb char">
+  <g class="sprout">
+    <path d="M70 49Q69 42 71 36" fill="none" stroke="#A45070" stroke-width="3" stroke-linecap="round"/>
+    <path d="M71 37C64 26 52 28 53 35C55 41 65 41 71 37Z" fill="#9EDBA8" stroke="#A45070" stroke-width="2.5" stroke-linejoin="round"/>
+    <path d="M71 37C76 25 89 25 89 32C88 39 78 40 71 37Z" fill="#B7E8BE" stroke="#A45070" stroke-width="2.5" stroke-linejoin="round"/>
+  </g>
+  <ellipse cx="21" cy="96" rx="7" ry="9" fill="#FFD9E4" stroke="#A45070" stroke-width="3"/>
+  <ellipse cx="119" cy="96" rx="7" ry="9" fill="#FFD9E4" stroke="#A45070" stroke-width="3"/>
+  <path d="M22 110C18 80 38 48 70 48C102 48 122 80 118 110C116 119 24 119 22 110Z" fill="#FFD9E4" stroke="#A45070" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M30 108Q70 113 110 108Q110 114 70 115Q30 114 30 108Z" fill="#E8A9BE" opacity=".45"/>
+  <ellipse cx="52" cy="64" rx="13" ry="7" fill="#fff" opacity=".7" transform="rotate(-25 52 64)"/>
+  <ellipse cx="42" cy="93" rx="8" ry="4.5" fill="#FF8FAE" opacity=".6"/>
+  <ellipse cx="98" cy="93" rx="8" ry="4.5" fill="#FF8FAE" opacity=".6"/>
+  <g><ellipse cx="59" cy="78" rx="5.5" ry="7" fill="#3A2530"/>
+    <circle cx="57.5" cy="75" r="2" fill="#fff"/><ellipse cx="87" cy="78" rx="5.5" ry="7" fill="#3A2530"/>
+    <circle cx="85.5" cy="75" r="2" fill="#fff"/></g>
+  <ellipse cx="74" cy="94" rx="2.6" ry="3" fill="#3A2530"/>
+</g>
+<g class="bubble">
+  <circle cx="92" cy="34" r="2.5" fill="#fff" stroke="#A45070" stroke-width="2"/>
+  <circle cx="98" cy="28" r="3.5" fill="#fff" stroke="#A45070" stroke-width="2"/>
+  <rect x="93" y="8" width="30" height="16" rx="8" fill="#fff" stroke="#A45070" stroke-width="2.5"/>
+  <circle class="d d1" cx="101" cy="16" r="2.5" fill="#A45070"/>
+  <circle class="d d2" cx="108" cy="16" r="2.5" fill="#A45070"/>
+  <circle class="d d3" cx="115" cy="16" r="2.5" fill="#A45070"/>
+</g>
+</svg>

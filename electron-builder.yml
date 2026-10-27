@@ -1,0 +1,22 @@
+appId: ae.rafid.osassistant
+productName: OS Assistant
+directories:
+  buildResources: build
+  output: dist
+files:
+  - out/**
+  - package.json
+extraResources:
+  - from: resources/characters
+    to: characters
+  - from: resources/icons
+    to: icons
+mac:
+  category: public.app-category.productivity
+  target:
+    - target: dmg
+      arch: [arm64, x64]
+  extendInfo:
+    LSUIElement: true
+win:
+  target: nsis

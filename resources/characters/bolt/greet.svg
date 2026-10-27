@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="140" height="140" viewBox="0 0 140 140">
+<style>
+.t{transform-box:fill-box;transform-origin:center}
+.tb{transform-box:fill-box;transform-origin:50% 100%}
+.char{animation:wave 1.4s ease-in-out infinite}
+@keyframes wave{0%,100%{transform:translateY(0) rotate(0)}15%{transform:translateY(-10px) rotate(-6deg)}30%{transform:translateY(0) rotate(0)}45%{transform:translateY(-10px) rotate(6deg)}60%{transform:translateY(0) rotate(0)}}
+.shadow{animation:sh 1.4s ease-in-out infinite}
+@keyframes sh{0%,30%,60%,100%{transform:scaleX(1);opacity:.2}15%,45%{transform:scaleX(.75);opacity:.1}}
+.sp{animation:tw 1.6s ease-in-out infinite}.s2{animation-delay:-.5s}.s3{animation-delay:-1.1s}
+@keyframes tw{0%,100%{transform:scale(1) rotate(0);opacity:1}50%{transform:scale(.4) rotate(45deg);opacity:.5}}
+.ant{transform-box:fill-box;transform-origin:50% 100%}
+.light{animation:glow 2s ease-in-out infinite}
+@keyframes glow{0%,100%{opacity:1}50%{opacity:.55}}
+.wig{animation:wig .7s ease-in-out infinite}
+@keyframes wig{0%,100%{transform:rotate(-14deg)}50%{transform:rotate(14deg)}}
+.arm{transform-box:fill-box;transform-origin:0% 100%;animation:arm .7s ease-in-out infinite}
+@keyframes arm{0%,100%{transform:rotate(-20deg)}50%{transform:rotate(10deg)}}
+.char{animation-name:hopg}
+@keyframes hopg{0%,30%,60%,100%{transform:translateY(0)}15%,45%{transform:translateY(-7px)}}
+</style>
+<ellipse class="t shadow" cx="70" cy="128" rx="34" ry="5" fill="#000" opacity=".2"/>
+<g class="tb char">
+  <g class="ant wig">
+    <path d="M70 42V24" stroke="#22314A" stroke-width="3" stroke-linecap="round"/>
+    <circle class="t light" cx="70" cy="19" r="6" fill="#FFD24A" stroke="#22314A" stroke-width="3"/>
+    <circle cx="68" cy="17" r="1.8" fill="#fff" opacity=".8"/>
+  </g>
+  <path d="M34 98Q23 102 25 110" fill="none" stroke="#22314A" stroke-width="7" stroke-linecap="round"/>
+    <path d="M34 98Q23 102 25 110" fill="none" stroke="#A9C4DE" stroke-width="2.5" stroke-linecap="round"/>
+    <circle cx="25" cy="111" r="5.5" fill="#A9C4DE" stroke="#22314A" stroke-width="3"/>
+  <rect x="22" y="72" width="12" height="22" rx="5" fill="#A9C4DE" stroke="#22314A" stroke-width="3"/>
+  <rect x="106" y="72" width="12" height="22" rx="5" fill="#A9C4DE" stroke="#22314A" stroke-width="3"/>
+  <circle cx="70" cy="82" r="40" fill="#D3E5F6" stroke="#22314A" stroke-width="3"/>
+  <path d="M42 70A32 32 0 0 1 64 49" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" opacity=".8"/>
+  <path d="M38 96A36 36 0 0 0 102 96A40 14 0 0 1 38 96Z" fill="#000" opacity=".06"/>
+  <rect x="41" y="62" width="58" height="30" rx="15" fill="#1D2A3E" stroke="#22314A" stroke-width="3"/>
+  <path d="M49 67H62" stroke="#fff" stroke-width="2" stroke-linecap="round" opacity=".25"/>
+  <g class="arm"><path d="M108 95Q123 92 120 72" fill="none" stroke="#22314A" stroke-width="7" stroke-linecap="round"/>
+    <path d="M108 95Q123 92 120 72" fill="none" stroke="#A9C4DE" stroke-width="2.5" stroke-linecap="round"/>
+    <circle cx="120" cy="68" r="5.5" fill="#A9C4DE" stroke="#22314A" stroke-width="3"/></g>
+  <ellipse cx="46" cy="101" rx="5" ry="3" fill="#FF8FA8" opacity=".55"/>
+  <ellipse cx="94" cy="101" rx="5" ry="3" fill="#FF8FA8" opacity=".55"/>
+  <path d="M51 80L57.5 72L64 80M76 80L82.5 72L89 80" fill="none" stroke="#6FF3FF" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M62 101Q70 102 78 101Q77 110 70 110Q63 110 62 101Z" fill="#1D2A3E" stroke="#22314A" stroke-width="2.5" stroke-linejoin="round"/>
+</g>
+<path class="t sp s1" d="M16 28Q16 34 22 34Q16 34 16 40Q16 34 10 34Q16 34 16 28Z" fill="#6FF3FF" stroke="#fff" stroke-width="1.5" style="paint-order:stroke"/><path class="t sp s2" d="M28 12Q28 16 32 16Q28 16 28 20Q28 16 24 16Q28 16 28 12Z" fill="#FFD24A" stroke="#fff" stroke-width="1.5" style="paint-order:stroke"/>
+</svg>

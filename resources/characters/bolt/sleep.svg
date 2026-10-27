@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="140" height="140" viewBox="0 0 140 140">
+<style>
+.t{transform-box:fill-box;transform-origin:center}
+.tb{transform-box:fill-box;transform-origin:50% 100%}
+.char{animation:breathe 4.5s ease-in-out infinite}
+@keyframes breathe{0%,100%{transform:scale(1,1)}50%{transform:scale(1.025,.975)}}
+.z{transform-box:fill-box;transform-origin:center;animation:zz 3.6s ease-in-out infinite}
+.z1{animation-delay:-2.4s}.z2{animation-delay:-1.2s}.z3{animation-delay:0s}
+@keyframes zz{0%{transform:translate(-4px,6px) scale(.8);opacity:0}20%{opacity:1}75%{opacity:1}100%{transform:translate(4px,-6px) scale(1.08);opacity:0}}
+.ant{transform-box:fill-box;transform-origin:50% 100%}
+.light{animation:glow 2s ease-in-out infinite}
+@keyframes glow{0%,100%{opacity:1}50%{opacity:.55}}
+.light{animation:glow 4.5s ease-in-out infinite}
+</style>
+<ellipse class="t shadow" cx="70" cy="128" rx="34" ry="5" fill="#000" opacity=".2"/>
+<g class="tb char">
+  <g class="ant">
+    <path d="M70 42V24" stroke="#22314A" stroke-width="3" stroke-linecap="round"/>
+    <circle class="t light" cx="70" cy="19" r="6" fill="#8A97AB" stroke="#22314A" stroke-width="3"/>
+    <circle cx="68" cy="17" r="1.8" fill="#fff" opacity=".8"/>
+  </g>
+  <path d="M34 98Q23 102 25 110" fill="none" stroke="#22314A" stroke-width="7" stroke-linecap="round"/>
+    <path d="M34 98Q23 102 25 110" fill="none" stroke="#A9C4DE" stroke-width="2.5" stroke-linecap="round"/>
+    <circle cx="25" cy="111" r="5.5" fill="#A9C4DE" stroke="#22314A" stroke-width="3"/>
+  <path d="M106 98Q117 102 115 110" fill="none" stroke="#22314A" stroke-width="7" stroke-linecap="round"/>
+    <path d="M106 98Q117 102 115 110" fill="none" stroke="#A9C4DE" stroke-width="2.5" stroke-linecap="round"/>
+    <circle cx="115" cy="111" r="5.5" fill="#A9C4DE" stroke="#22314A" stroke-width="3"/>
+  <rect x="22" y="72" width="12" height="22" rx="5" fill="#A9C4DE" stroke="#22314A" stroke-width="3"/>
+  <rect x="106" y="72" width="12" height="22" rx="5" fill="#A9C4DE" stroke="#22314A" stroke-width="3"/>
+  <circle cx="70" cy="82" r="40" fill="#D3E5F6" stroke="#22314A" stroke-width="3"/>
+  <path d="M42 70A32 32 0 0 1 64 49" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" opacity=".8"/>
+  <path d="M38 96A36 36 0 0 0 102 96A40 14 0 0 1 38 96Z" fill="#000" opacity=".06"/>
+  <rect x="41" y="62" width="58" height="30" rx="15" fill="#1D2A3E" stroke="#22314A" stroke-width="3"/>
+  <path d="M49 67H62" stroke="#fff" stroke-width="2" stroke-linecap="round" opacity=".25"/>
+  <ellipse cx="46" cy="101" rx="5" ry="3" fill="#FF8FA8" opacity=".55"/>
+  <ellipse cx="94" cy="101" rx="5" ry="3" fill="#FF8FA8" opacity=".55"/>
+  <path d="M52 77Q57.5 82 63 77M77 77Q82.5 82 88 77" fill="none" stroke="#6FF3FF" stroke-width="3" stroke-linecap="round" opacity=".7"/>
+  <path d="M66 104H74" stroke="#22314A" stroke-width="3" stroke-linecap="round"/>
+</g>
+<g font-family="sans-serif" font-weight="bold" fill="#22314A" stroke="#fff" stroke-width="3" stroke-linejoin="round" style="paint-order:stroke">
+  <text class="z z1" x="92" y="48" font-size="13">z</text>
+  <text class="z z2" x="101" y="37" font-size="16">z</text>
+  <text class="z z3" x="111" y="26" font-size="20">Z</text>
+</g>
+</svg>

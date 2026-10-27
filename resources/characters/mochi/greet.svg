@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="140" height="140" viewBox="0 0 140 140">
+<style>
+.t{transform-box:fill-box;transform-origin:center}
+.tb{transform-box:fill-box;transform-origin:50% 100%}
+.char{animation:wave 1.4s ease-in-out infinite}
+@keyframes wave{0%,100%{transform:translateY(0) rotate(0)}15%{transform:translateY(-10px) rotate(-6deg)}30%{transform:translateY(0) rotate(0)}45%{transform:translateY(-10px) rotate(6deg)}60%{transform:translateY(0) rotate(0)}}
+.shadow{animation:sh 1.4s ease-in-out infinite}
+@keyframes sh{0%,30%,60%,100%{transform:scaleX(1);opacity:.2}15%,45%{transform:scaleX(.75);opacity:.1}}
+.sp{animation:tw 1.6s ease-in-out infinite}.s2{animation-delay:-.5s}.s3{animation-delay:-1.1s}
+@keyframes tw{0%,100%{transform:scale(1) rotate(0);opacity:1}50%{transform:scale(.4) rotate(45deg);opacity:.5}}
+.sprout{transform-box:fill-box;transform-origin:30% 100%;animation:sway 3.2s ease-in-out infinite}
+@keyframes sway{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(5deg)}}
+.warm{transform-box:fill-box;transform-origin:0% 100%;animation:wv .6s ease-in-out infinite}
+@keyframes wv{0%,100%{transform:translate(0,-14px) rotate(-10deg)}50%{transform:translate(0,-14px) rotate(25deg)}}
+.char{animation-name:squish}
+@keyframes squish{0%,30%,60%,100%{transform:translateY(0) scale(1.04,.96)}15%,45%{transform:translateY(-9px) scale(.97,1.03)}}
+</style>
+<ellipse class="t shadow" cx="70" cy="125" rx="44" ry="5" fill="#000" opacity=".2"/>
+<g class="tb char">
+  <g class="sprout">
+    <path d="M70 49Q69 42 71 36" fill="none" stroke="#A45070" stroke-width="3" stroke-linecap="round"/>
+    <path d="M71 37C64 26 52 28 53 35C55 41 65 41 71 37Z" fill="#9EDBA8" stroke="#A45070" stroke-width="2.5" stroke-linejoin="round"/>
+    <path d="M71 37C76 25 89 25 89 32C88 39 78 40 71 37Z" fill="#B7E8BE" stroke="#A45070" stroke-width="2.5" stroke-linejoin="round"/>
+  </g>
+  <ellipse cx="21" cy="96" rx="7" ry="9" fill="#FFD9E4" stroke="#A45070" stroke-width="3"/>
+  <path d="M22 110C18 80 38 48 70 48C102 48 122 80 118 110C116 119 24 119 22 110Z" fill="#FFD9E4" stroke="#A45070" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M30 108Q70 113 110 108Q110 114 70 115Q30 114 30 108Z" fill="#E8A9BE" opacity=".45"/>
+  <ellipse cx="52" cy="64" rx="13" ry="7" fill="#fff" opacity=".7" transform="rotate(-25 52 64)"/>
+  <g class="warm"><ellipse cx="119" cy="96" rx="7" ry="9" fill="#FFD9E4" stroke="#A45070" stroke-width="3"/></g>
+  <ellipse cx="42" cy="93" rx="8" ry="4.5" fill="#FF8FAE" opacity=".6"/>
+  <ellipse cx="98" cy="93" rx="8" ry="4.5" fill="#FF8FAE" opacity=".6"/>
+  <path d="M50 85L56 78L62 85M78 85L84 78L90 85" fill="none" stroke="#3A2530" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M62 90Q70 91 78 90Q77 101 70 101Q63 101 62 90Z" fill="#8E3150" stroke="#A45070" stroke-width="2.5" stroke-linejoin="round"/>
+  <path d="M65.5 97.5Q70 94.5 74.5 97.5Q70 100 65.5 97.5Z" fill="#FF8FAE"/>
+</g>
+<path class="t sp s1" d="M16 34Q16 40 22 40Q16 40 16 46Q16 40 10 40Q16 40 16 34Z" fill="#FF9DBB" stroke="#fff" stroke-width="1.5" style="paint-order:stroke"/><path class="t sp s2" d="M124 23Q124 28 129 28Q124 28 124 33Q124 28 119 28Q124 28 124 23Z" fill="#9EDBA8" stroke="#fff" stroke-width="1.5" style="paint-order:stroke"/><path class="t sp s3" d="M30 16Q30 20 34 20Q30 20 30 24Q30 20 26 20Q30 20 30 16Z" fill="#FFC93C" stroke="#fff" stroke-width="1.5" style="paint-order:stroke"/>
+</svg>

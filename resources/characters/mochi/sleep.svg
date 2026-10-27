@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="140" height="140" viewBox="0 0 140 140">
+<style>
+.t{transform-box:fill-box;transform-origin:center}
+.tb{transform-box:fill-box;transform-origin:50% 100%}
+.char{animation:breathe 4.5s ease-in-out infinite}
+@keyframes breathe{0%,100%{transform:scale(1,1)}50%{transform:scale(1.025,.975)}}
+.z{transform-box:fill-box;transform-origin:center;animation:zz 3.6s ease-in-out infinite}
+.z1{animation-delay:-2.4s}.z2{animation-delay:-1.2s}.z3{animation-delay:0s}
+@keyframes zz{0%{transform:translate(-4px,6px) scale(.8);opacity:0}20%{opacity:1}75%{opacity:1}100%{transform:translate(4px,-6px) scale(1.08);opacity:0}}
+.sprout{transform-box:fill-box;transform-origin:30% 100%;animation:sway 3.2s ease-in-out infinite}
+@keyframes sway{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(5deg)}}
+.droop{transform-box:fill-box;transform-origin:30% 100%;transform:rotate(-14deg)}
+</style>
+<ellipse class="t shadow" cx="70" cy="125" rx="44" ry="5" fill="#000" opacity=".2"/>
+<g class="tb char">
+  <g class="droop">
+    <path d="M70 49Q69 42 71 36" fill="none" stroke="#A45070" stroke-width="3" stroke-linecap="round"/>
+    <path d="M71 37C64 26 52 28 53 35C55 41 65 41 71 37Z" fill="#9EDBA8" stroke="#A45070" stroke-width="2.5" stroke-linejoin="round"/>
+    <path d="M71 37C76 25 89 25 89 32C88 39 78 40 71 37Z" fill="#B7E8BE" stroke="#A45070" stroke-width="2.5" stroke-linejoin="round"/>
+  </g>
+  <ellipse cx="21" cy="96" rx="7" ry="9" fill="#FFD9E4" stroke="#A45070" stroke-width="3"/>
+  <ellipse cx="119" cy="96" rx="7" ry="9" fill="#FFD9E4" stroke="#A45070" stroke-width="3"/>
+  <path d="M22 110C18 80 38 48 70 48C102 48 122 80 118 110C116 119 24 119 22 110Z" fill="#FFD9E4" stroke="#A45070" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M30 108Q70 113 110 108Q110 114 70 115Q30 114 30 108Z" fill="#E8A9BE" opacity=".45"/>
+  <ellipse cx="52" cy="64" rx="13" ry="7" fill="#fff" opacity=".7" transform="rotate(-25 52 64)"/>
+  <ellipse cx="42" cy="93" rx="8" ry="4.5" fill="#FF8FAE" opacity=".6"/>
+  <ellipse cx="98" cy="93" rx="8" ry="4.5" fill="#FF8FAE" opacity=".6"/>
+  <path d="M50 84Q56 89 62 84M78 84Q84 89 90 84" fill="none" stroke="#3A2530" stroke-width="3" stroke-linecap="round"/>
+  <path d="M66 94Q70 96 74 94" fill="none" stroke="#A45070" stroke-width="2.5" stroke-linecap="round"/>
+</g>
+<g font-family="sans-serif" font-weight="bold" fill="#A45070" stroke="#fff" stroke-width="3" stroke-linejoin="round" style="paint-order:stroke">
+  <text class="z z1" x="94" y="50" font-size="13">z</text>
+  <text class="z z2" x="103" y="39" font-size="16">z</text>
+  <text class="z z3" x="113" y="28" font-size="20">Z</text>
+</g>
+</svg>
