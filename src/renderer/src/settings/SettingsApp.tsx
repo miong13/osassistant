@@ -180,7 +180,7 @@ function AboutTab() {
     <>
       <h1>About</h1>
       <p className="lede">
-        OS Assistant 0.1.0. A desktop character you can chat with, powered by Claude, local Ollama models, or
+        OS Assistant {__APP_VERSION__}. A desktop character you can chat with, powered by Claude, local Ollama models, or
         any OpenAI-compatible service. It can open your apps, files and websites, and use tools from MCP servers.
       </p>
       <div className="card">

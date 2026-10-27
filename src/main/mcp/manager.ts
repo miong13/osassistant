@@ -150,7 +150,7 @@ export class McpManager extends EventEmitter implements ToolHost {
     this.changed()
     if (!config.enabled) return
 
-    const client = new Client({ name: 'os-assistant', version: '0.1.0' })
+    const client = new Client({ name: 'os-assistant', version: __APP_VERSION__ })
     try {
       let transport
       if (config.url) {
