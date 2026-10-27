@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="140" height="140" viewBox="0 0 140 140">
+<style>
+.t{transform-box:fill-box;transform-origin:center}
+.tb{transform-box:fill-box;transform-origin:50% 100%}
+.tails{transform-box:fill-box;transform-origin:100% 40%}
+.blink{animation:blink 4s infinite}
+@keyframes blink{0%,91%,100%{transform:scaleY(1)}94%{transform:scaleY(.1)}97%{transform:scaleY(1)}}
+.char{animation:breathe 4.5s ease-in-out infinite}
+@keyframes breathe{0%,100%{transform:scale(1,1)}50%{transform:scale(1.025,.975)}}
+.z{transform-box:fill-box;transform-origin:center;animation:zz 3.6s ease-in-out infinite}
+.z1{animation-delay:-2.4s}.z2{animation-delay:-1.2s}.z3{animation-delay:0s}
+@keyframes zz{0%{transform:translate(-4px,6px) scale(.8);opacity:0}20%{opacity:1}75%{opacity:1}100%{transform:translate(4px,-6px) scale(1.08);opacity:0}}
+.tails{animation:droop 4.5s ease-in-out infinite}
+@keyframes droop{0%,100%{transform:rotate(-14deg)}50%{transform:rotate(-10deg)}}
+</style>
+<ellipse class="t shadow" cx="70" cy="128" rx="34" ry="5" fill="#000" opacity=".2"/>
+<g class="tb char">
+  <g class="tails">
+    <path d="M36 55Q22 46 10 51Q18 55 35 60Z" fill="#E5484D" stroke="#1B2036" stroke-width="2.5" stroke-linejoin="round"/>
+    <path d="M36 58Q24 66 17 77Q28 70 37 62Z" fill="#E5484D" stroke="#1B2036" stroke-width="2.5" stroke-linejoin="round"/>
+  </g>
+  <circle cx="70" cy="82" r="40" fill="#2E3654" stroke="#1B2036" stroke-width="3"/>
+  <path d="M54 47Q61 44 68 44" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" opacity=".3"/>
+  <path d="M38 96A36 36 0 0 0 102 96A40 14 0 0 1 38 96Z" fill="#000" opacity=".15"/>
+  <path d="M46 50H94A40 40 0 0 1 103.4 60H36.6A40 40 0 0 1 46 50Z" fill="#E5484D" stroke="#1B2036" stroke-width="2.5" stroke-linejoin="round"/>
+  <rect x="61" y="50.5" width="18" height="9" rx="2.5" fill="#C7D2E0" stroke="#1B2036" stroke-width="2"/>
+  <path d="M70 52L71.2 53.8L73 55L71.2 56.2L70 58L68.8 56.2L67 55L68.8 53.8Z" fill="#1B2036"/>
+  <circle cx="37" cy="57" r="4" fill="#E5484D" stroke="#1B2036" stroke-width="2.5"/>
+  <rect x="40" y="64" width="60" height="26" rx="13" fill="#FFDDBE" stroke="#1B2036" stroke-width="3"/>
+  <ellipse cx="47" cy="84" rx="4" ry="2.5" fill="#FF8FA8" opacity=".6"/>
+  <ellipse cx="93" cy="84" rx="4" ry="2.5" fill="#FF8FA8" opacity=".6"/>
+  <path d="M52 77Q57 82 62 77M78 77Q83 82 88 77" fill="none" stroke="#1B2036" stroke-width="3" stroke-linecap="round"/>
+  <path d="M66 102H74" stroke="#4A5578" stroke-width="2.5" stroke-linecap="round"/>
+  <circle cx="32" cy="104" r="7" fill="#2E3654" stroke="#1B2036" stroke-width="3"/>
+  <circle cx="108" cy="104" r="7" fill="#2E3654" stroke="#1B2036" stroke-width="3"/>
+</g>
+<g font-family="sans-serif" font-weight="bold" fill="#1B2036" stroke="#fff" stroke-width="3" stroke-linejoin="round" style="paint-order:stroke">
+  <text class="z z1" x="92" y="48" font-size="13">z</text>
+  <text class="z z2" x="101" y="37" font-size="16">z</text>
+  <text class="z z3" x="111" y="26" font-size="20">Z</text>
+</g>
+</svg>

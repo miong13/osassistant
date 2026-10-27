@@ -24,7 +24,7 @@ Runs on macOS and Windows. Built with Electron, React and TypeScript.
   <tr>
     <td width="50%">
       <img src="docs/screenshots/characters.png" alt="Characters settings">
-      <p align="center"><b>Characters</b>: Bolt, Mochi and Sticky built in, or add your own</p>
+      <p align="center"><b>Characters</b>: Bolt, Kage (ninja), Mochi and Sticky built in, or add your own</p>
     </td>
     <td width="50%">
       <img src="docs/screenshots/tips.png" alt="Tips settings">
