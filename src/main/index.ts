@@ -89,6 +89,10 @@ async function main(): Promise<void> {
     if (!config) throw new Error('No AI provider selected. Pick one in Settings → AI Providers.')
     return { config, provider: createProvider(config, secrets.get(config.id)) }
   }
+  const isProviderReady = (id: string) => {
+    const config = settings.get().providers.find((p) => p.id === id)
+    return !!config && (config.kind !== 'openai-compatible' || !!config.baseUrl)
+  }
   const providerViews = (): ProviderView[] =>
     settings.get().providers.map((p) => ({ ...p, hasApiKey: secrets.has(p.id) }))
 
@@ -251,8 +255,13 @@ async function main(): Promise<void> {
     })
     return providerViews()
   })
-  handle('providers:models', (id: string) => getProvider(id).provider.listModels())
+  handle('providers:models', (id: string) => {
+    // A provider still being set up (e.g. a custom one with no URL yet) just has no models.
+    if (!isProviderReady(id)) return []
+    return getProvider(id).provider.listModels()
+  })
   handle('providers:test', async (id: string) => {
+    if (!isProviderReady(id)) return { ok: false, message: 'Add a base URL first.' }
     const { provider } = getProvider(id)
     try {
       const models = await provider.listModels()
