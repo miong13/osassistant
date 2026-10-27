@@ -9,7 +9,7 @@ describe('CharacterLibrary', () => {
     const lib = new CharacterLibrary(join(__dirname, '../resources/characters'), mkdtempSync(join(tmpdir(), 'osa-')))
     const { characters, errors } = lib.load()
     expect(errors).toEqual([])
-    expect(characters.map((c) => c.id).sort()).toEqual(['bolt', 'mochi', 'ninja', 'sticky'])
+    expect(characters.map((c) => c.id).sort()).toEqual(['bolt', 'geek', 'mochi', 'ninja', 'scientist', 'sticky'])
     for (const c of characters) expect(c.states.idle.type).toBe('image')
   })
 

@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="140" height="140" viewBox="0 0 140 140">
+<style>
+.t{transform-box:fill-box;transform-origin:center}
+.tb{transform-box:fill-box;transform-origin:50% 100%}
+.blink{animation:blink 4s infinite}
+@keyframes blink{0%,91%,100%{transform:scaleY(1)}94%{transform:scaleY(.1)}97%{transform:scaleY(1)}}
+.bub{transform-box:fill-box;transform-origin:center;animation:rise 1.8s ease-in infinite}
+.b2{animation-delay:-.6s}.b3{animation-delay:-1.2s}
+@keyframes rise{0%{transform:translateY(0) scale(.6);opacity:0}20%{opacity:1}100%{transform:translateY(-13px) scale(1.1);opacity:0}}
+.char{animation:hopg 1.4s ease-in-out infinite}
+@keyframes hopg{0%,30%,60%,100%{transform:translateY(0)}15%,45%{transform:translateY(-7px)}}
+.shadow{animation:sh 1.4s ease-in-out infinite}
+@keyframes sh{0%,30%,60%,100%{transform:scaleX(1);opacity:.2}15%,45%{transform:scaleX(.75);opacity:.1}}
+.arm{transform-box:fill-box;transform-origin:0% 100%;animation:arm .7s ease-in-out infinite}
+@keyframes arm{0%,100%{transform:rotate(-20deg)}50%{transform:rotate(10deg)}}
+.sp{animation:tw 1.6s ease-in-out infinite}.s2{animation-delay:-.5s}.s3{animation-delay:-1.1s}
+@keyframes tw{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(.6);opacity:.45}}
+</style>
+<ellipse class="t shadow" cx="70" cy="128" rx="34" ry="5" fill="#000" opacity=".2"/>
+<g class="tb char">
+  <circle cx="70" cy="82" r="40" fill="#FFD9B8" stroke="#2A2F45" stroke-width="3"/>
+  <path d="M34.3 100Q70 108 105.7 100A40 40 0 0 1 34.3 100Z" fill="#3DA35D" stroke="#2A2F45" stroke-width="2.5" stroke-linejoin="round"/>
+  <path d="M63 104V113M77 104V113" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="63" cy="114" r="2" fill="#fff" stroke="#2A2F45" stroke-width="1.2"/>
+  <circle cx="77" cy="114" r="2" fill="#fff" stroke="#2A2F45" stroke-width="1.2"/>
+  <ellipse cx="45" cy="88" rx="4.5" ry="2.8" fill="#FF8FA8" opacity=".55"/>
+  <ellipse cx="95" cy="88" rx="4.5" ry="2.8" fill="#FF8FA8" opacity=".55"/>
+  <path d="M31.8 70A40 40 0 0 1 108.2 70L101 62L93 67L85 59L76 66L66 58L57 66L48 60L39 67Z" fill="#5B3A29" stroke="#2A2F45" stroke-width="2.5" stroke-linejoin="round"/>
+  <path d="M68 43Q62 31 75 33Q69 37 73 43" fill="#5B3A29" stroke="#2A2F45" stroke-width="2.5" stroke-linejoin="round"/>
+  <path d="M50 52Q57 46 66 45" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".25"/>
+  <circle cx="56" cy="77" r="10" fill="#fff" fill-opacity=".45"/>
+  <circle cx="84" cy="77" r="10" fill="#fff" fill-opacity=".45"/>
+  <path d="M51 80L56 74L61 80M79 80L84 74L89 80" fill="none" stroke="#2A2F45" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="56" cy="77" r="10" fill="none" stroke="#2A2F45" stroke-width="3"/>
+  <circle cx="84" cy="77" r="10" fill="none" stroke="#2A2F45" stroke-width="3"/>
+  <path d="M66 76Q70 73 74 76" fill="none" stroke="#2A2F45" stroke-width="3" stroke-linecap="round"/>
+  <path d="M50 72Q52 70 55 69.5M78 72Q80 70 83 69.5" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" opacity=".9"/>
+  <path d="M62 88Q70 89 78 88Q77 98 70 98Q63 98 62 88Z" fill="#7A2E3B" stroke="#2A2F45" stroke-width="2.5" stroke-linejoin="round"/>
+  <rect x="67.2" y="88.2" width="5.6" height="3.4" rx="1" fill="#fff"/>
+  <path d="M30 74A41 41 0 0 1 110 74" fill="none" stroke="#2A2F45" stroke-width="7" stroke-linecap="round"/>
+  <path d="M30 74A41 41 0 0 1 110 74" fill="none" stroke="#3A3F55" stroke-width="3" stroke-linecap="round"/>
+  <rect x="23" y="68" width="12" height="24" rx="5" fill="#FF7A59" stroke="#2A2F45" stroke-width="3"/>
+  <rect x="105" y="68" width="12" height="24" rx="5" fill="#FF7A59" stroke="#2A2F45" stroke-width="3"/>
+  <circle cx="31" cy="108" r="6.5" fill="#FFD9B8" stroke="#2A2F45" stroke-width="3"/>
+  <g class="arm"><path d="M104 100Q122 94 120 74" fill="none" stroke="#2A2F45" stroke-width="10" stroke-linecap="round"/>
+    <path d="M104 100Q122 94 120 74" fill="none" stroke="#3DA35D" stroke-width="5" stroke-linecap="round"/>
+    <circle cx="120" cy="69" r="6.5" fill="#FFD9B8" stroke="#2A2F45" stroke-width="3"/></g>
+</g>
+<g font-family="Menlo,Consolas,monospace" font-weight="bold" stroke="#fff" stroke-width="3" stroke-linejoin="round" style="paint-order:stroke">
+  <text class="t sp s1" x="8" y="30" font-size="15" fill="#3DA35D">&lt;/&gt;</text>
+  <text class="t sp s2" x="98" y="26" font-size="11" fill="#FF7A59">01</text>
+  <text class="t sp s3" x="30" y="12" font-size="10" fill="#3A3F55">{ }</text>
+</g>
+</svg>
