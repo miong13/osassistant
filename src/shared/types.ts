@@ -168,6 +168,8 @@ export interface McpToolInfo {
   server: string
   originalName: string
   description: string
+  /** Shown when the user hasn't picked a permission. Missing means 'ask'. */
+  defaultPermission?: ToolPermission
 }
 
 export interface McpServerStatus {

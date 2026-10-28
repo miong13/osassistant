@@ -168,7 +168,7 @@ function ToolRows(props: {
           <select
             className="field"
             style={{ width: 130 }}
-            value={props.permissions[t.name] ?? 'ask'}
+            value={props.permissions[t.name] ?? t.defaultPermission ?? 'ask'}
             onChange={(e) => props.onPermission(t.name, e.target.value as ToolPermission)}
           >
             <option value="ask">Ask first</option>

@@ -9,6 +9,7 @@ import {
   type IpcMainEvent,
   type IpcMainInvokeEvent,
   net,
+  Notification,
   powerMonitor,
   protocol,
   shell
@@ -34,6 +35,7 @@ import { SqliteChatStore } from './store/sqliteStore'
 import { TipEngine } from './tips/engine'
 import { AppTray } from './tray'
 import { RELEASES_URL, Updater } from './updater'
+import { Reminders, formatWhen, type Reminder } from './reminders'
 import { CharacterWindow, openSettingsWindow } from './windows'
 
 protocol.registerSchemesAsPrivileged([
@@ -62,7 +64,8 @@ async function main(): Promise<void> {
 
   let shellPath = process.env.PATH ?? ''
   const desktop = new DesktopTools(desktopDeps())
-  const mcp = new McpManager(() => shellPath, (name) => desktop.has(name))
+  const reminders = new Reminders({ file: join(app.getPath('userData'), 'reminders.json') })
+  const mcp = new McpManager(() => shellPath, (name) => desktop.has(name) || reminders.has(name))
   const characterWindow = new CharacterWindow(settings)
 
   const broadcast = (channel: string, payload: unknown) => {
@@ -100,7 +103,7 @@ async function main(): Promise<void> {
   // ---------- chat ----------
   const orchestrator = new Orchestrator({
     store,
-    tools: combineToolHosts([desktop, mcp]),
+    tools: combineToolHosts([desktop, reminders, mcp]),
     getSettings: () => settings.get(),
     getProvider,
     getCharacter: (id) => characters.get(id),
@@ -123,11 +126,12 @@ async function main(): Promise<void> {
   const closeBubble = () => {
     characterWindow.setMode('closed')
   }
-  const showTip = (tip: Tip) => {
+  /** Sticky tips (reminders) stay until the user answers them. */
+  const showTip = (tip: Tip, sticky = false) => {
     characterWindow.setMode('tip')
     characterWindow.send('tip', tip)
     clearTimeout(tipTimer)
-    tipTimer = setTimeout(dismissTip, 20_000)
+    if (!sticky) tipTimer = setTimeout(dismissTip, 20_000)
   }
   const dismissTip = () => {
     clearTimeout(tipTimer)
@@ -187,10 +191,27 @@ async function main(): Promise<void> {
   const refreshTray = () =>
     tray.update(settings.get(), characters.list().characters, characterWindow.visible, registeredHotkey, updater.current)
 
+  // ---------- reminders ----------
+  const firedReminders = new Map<string, Reminder>()
+  const fireReminder = (r: Reminder, late: boolean) => {
+    const text = late ? `Reminder from ${formatWhen(r.dueAt)}: ${r.message}` : `Reminder: ${r.message}`
+    // The character says it when it's free; otherwise (chat open, another tip showing, hidden) use a notification.
+    if (characterWindow.visible && characterWindow.mode === 'closed') {
+      const id = `reminder:${r.id}`
+      firedReminders.set(id, r)
+      showTip({ id, text, acceptLabel: 'Snooze 10 min', dismissLabel: 'Done' }, true)
+    } else if (Notification.isSupported()) {
+      const n = new Notification({ title: 'Reminder', body: late ? text : r.message })
+      n.on('click', () => openBubble(true))
+      n.show()
+    }
+  }
+
   // ---------- quitting ----------
   let quitting = false
   const shutdown = async () => {
     tips.stop()
+    reminders.stop()
     updater.stop()
     orchestrator.stopAll()
     globalShortcut.unregisterAll()
@@ -354,7 +375,7 @@ async function main(): Promise<void> {
   })
   handle('characters:open-folder', () => shell.openPath(characters.userDir))
 
-  handle('tools:builtin', () => desktop.info())
+  handle('tools:builtin', () => [...desktop.info(), ...reminders.info()])
   handle('mcp:status', () => mcp.status())
   handle('mcp:restart', (name?: string) => mcp.restart(name))
   handle('mcp:import-claude', () => {
@@ -399,8 +420,18 @@ async function main(): Promise<void> {
   })
   listen('window:drag-by', (_e, dx: number, dy: number) => characterWindow.dragBy(dx, dy))
   listen('window:drag-end', () => characterWindow.dragEnd())
-  listen('tip:dismiss', () => dismissTip())
+  listen('tip:dismiss', () => {
+    firedReminders.clear() // "Done" on a reminder
+    dismissTip()
+  })
   listen('tip:accept', (_e, tip: Tip) => {
+    const reminder = firedReminders.get(tip.id)
+    if (reminder) {
+      firedReminders.delete(tip.id)
+      dismissTip()
+      reminders.add(reminder.message, Date.now() + 10 * 60_000)
+      return
+    }
     if (tip.id === 'update') {
       dismissTip()
       if (updater.current.state === 'ready') installUpdate()
@@ -433,6 +464,7 @@ async function main(): Promise<void> {
   refreshTray()
   tips.start()
   void updater.start()
+  reminders.start(fireReminder)
 
   shellPath = await loadShellPath()
   void mcp.sync(settings.get().mcpServers)

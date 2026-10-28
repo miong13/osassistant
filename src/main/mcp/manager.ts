@@ -28,6 +28,8 @@ export interface ToolHost {
   toolDefs(permissions: Record<string, ToolPermission>): ToolDef[]
   inputSchema(name: string): Record<string, unknown> | undefined
   callTool(name: string, input: unknown, signal: AbortSignal): Promise<ToolCallResult>
+  /** Permission to use when the user hasn't chosen one. Missing means 'ask'. */
+  defaultPermission?(name: string): ToolPermission | undefined
 }
 
 /** One ToolHost over several (built-in tools first, then MCP). The first host to claim a name wins. */
@@ -41,6 +43,7 @@ export function combineToolHosts(hosts: ToolHost[]): ToolHost {
         .filter((t) => !seen.has(t.name) && Boolean(seen.add(t.name)))
     },
     inputSchema: (name) => owner(name)?.inputSchema(name),
+    defaultPermission: (name) => owner(name)?.defaultPermission?.(name),
     callTool(name, input, signal) {
       const host = owner(name)
       if (!host) return Promise.resolve({ content: `Tool "${name}" is not available.`, isError: true })

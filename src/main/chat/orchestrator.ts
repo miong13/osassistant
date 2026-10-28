@@ -304,7 +304,8 @@ export class Orchestrator {
       return errorResult(call, `Invalid tool input: ${invalid}. Fix the arguments and try again.`)
     }
 
-    const permission = this.deps.getSettings().toolPermissions[call.name] ?? 'ask'
+    const permission =
+      this.deps.getSettings().toolPermissions[call.name] ?? this.deps.tools.defaultPermission?.(call.name) ?? 'ask'
     if (permission === 'disabled') {
       status('denied')
       return errorResult(call, 'This tool is disabled by the user.')
