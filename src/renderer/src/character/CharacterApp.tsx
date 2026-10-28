@@ -4,6 +4,8 @@ import type { CharacterInfo, Layout, Settings, Tip } from '../../../shared/types
 import { ChatBubble } from '../chat/ChatBubble'
 import { TipBubble } from '../chat/TipBubble'
 import { useChat } from '../chat/useChat'
+import { answerText, splitTurns } from '../chat/turns'
+import { speak, stopSpeaking } from '../lib/speech'
 import { CharacterView } from './CharacterView'
 import { useCharacterState } from './useCharacterState'
 
@@ -18,6 +20,10 @@ export function CharacterApp() {
   const [lastInteractionAt, setLastInteractionAt] = useState(Date.now())
   const [focusToken, setFocusToken] = useState(0)
   const [quickActions, setQuickActions] = useState<QuickActionsRequest | null>(null)
+  const [speaking, setSpeaking] = useState(false)
+  /** Last time a word was spoken, so the character's mouth moves while reading aloud. */
+  const [spokeAt, setSpokeAt] = useState(0)
+  const wasBusy = useRef(false)
   const chat = useChat()
   const pendingPrompt = useRef<string | null>(null)
 
@@ -46,10 +52,52 @@ export function CharacterApp() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // Quick actions belong to one opening of the bubble.
+  // Quick actions belong to one opening of the bubble; closing it also stops reading aloud.
   useEffect(() => {
-    if (layout?.mode !== 'open') setQuickActions(null)
+    if (layout?.mode !== 'open') {
+      setQuickActions(null)
+      stopSpeaking()
+      setSpeaking(false)
+    }
   }, [layout?.mode])
+
+  const readAloud = useCallback(
+    (text: string) => {
+      setSpeaking(true)
+      void speak(text, {
+        voiceName: settings?.voice.voiceName,
+        rate: settings?.voice.rate,
+        onWord: () => setSpokeAt(Date.now()),
+        onEnd: () => setSpeaking(false)
+      })
+    },
+    [settings?.voice.voiceName, settings?.voice.rate]
+  )
+  const toggleSpeak = useCallback(
+    (text: string) => {
+      if (speaking) {
+        stopSpeaking()
+        setSpeaking(false)
+      } else readAloud(text)
+    },
+    [speaking, readAloud]
+  )
+
+  // A new question stops reading; a finished answer is read aloud if that's turned on.
+  useEffect(() => {
+    const busy = chat.state.busy
+    if (busy && !wasBusy.current) {
+      stopSpeaking()
+      setSpeaking(false)
+    }
+    if (!busy && wasBusy.current && settings?.voice.readAloud && !chat.state.error) {
+      const turns = splitTurns(chat.state.messages)
+      const answer = answerText(turns[turns.length - 1])
+      if (answer) readAloud(answer)
+    }
+    wasBusy.current = busy
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chat.state.busy])
 
   // A tip the user accepted starts a fresh chat with its prompt.
   useEffect(() => {
@@ -65,7 +113,7 @@ export function CharacterApp() {
     mode: layout?.mode ?? 'closed',
     busy: chat.state.busy,
     thinking: chat.state.thinking,
-    lastDeltaAt: chat.state.lastDeltaAt,
+    lastDeltaAt: Math.max(chat.state.lastDeltaAt, spokeAt),
     lastTypedAt,
     error: chat.state.error,
     hasApproval: chat.state.approvals.length > 0,
@@ -95,6 +143,8 @@ export function CharacterApp() {
           chat={chat}
           focusToken={focusToken}
           quickActions={quickActions}
+          speaking={speaking}
+          onSpeak={toggleSpeak}
           onCloseQuickActions={() => setQuickActions(null)}
           onTyping={() => {
             setLastTypedAt(Date.now())

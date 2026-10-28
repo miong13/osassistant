@@ -35,6 +35,13 @@ export const DEFAULT_SETTINGS: Settings = {
     clipboard: false,
     randomTips: true
   },
+  voice: {
+    readAloud: false,
+    voiceName: '',
+    rate: 1,
+    transcribeProviderId: '',
+    transcribeModel: ''
+  },
   characterPositions: {}
 }
 
@@ -44,6 +51,7 @@ export function withDefaults(partial: Partial<Settings>): Settings {
     ...DEFAULT_SETTINGS,
     ...partial,
     tips: { ...DEFAULT_SETTINGS.tips, ...(partial.tips ?? {}) },
+    voice: { ...DEFAULT_SETTINGS.voice, ...(partial.voice ?? {}) },
     providers: partial.providers?.length ? partial.providers : DEFAULT_SETTINGS.providers,
     mcpServers: partial.mcpServers ?? [],
     toolPermissions: partial.toolPermissions ?? {},

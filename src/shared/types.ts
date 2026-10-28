@@ -49,6 +49,18 @@ export interface TipSettings {
   randomTips: boolean
 }
 
+export interface VoiceSettings {
+  /** Read each new answer aloud with a system voice. */
+  readAloud: boolean
+  /** System voice name; empty = default voice. */
+  voiceName: string
+  /** Speaking speed, 0.5–2. */
+  rate: number
+  /** OpenAI-compatible provider used to turn speech into text; empty = voice input off. */
+  transcribeProviderId: string
+  transcribeModel: string
+}
+
 export interface Settings {
   hotkey: string
   showDockIcon: boolean
@@ -65,6 +77,7 @@ export interface Settings {
   mcpServers: McpServerConfig[]
   toolPermissions: Record<string, ToolPermission>
   tips: TipSettings
+  voice: VoiceSettings
   /** Top-left of the character on screen, per display id. */
   characterPositions: Record<string, { x: number; y: number }>
 }

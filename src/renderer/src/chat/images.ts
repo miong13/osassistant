@@ -36,7 +36,7 @@ export function fromBase64(img: NewImageInput): DraftImage {
   return { ...img, url: `data:${img.mediaType};base64,${img.data}` }
 }
 
-function toBase64(blob: Blob): Promise<string> {
+export function toBase64(blob: Blob): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
     reader.onload = () => resolve(String(reader.result).replace(/^data:[^,]*,/, ''))

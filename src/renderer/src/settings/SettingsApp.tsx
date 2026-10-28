@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { SettingsPatch } from '../../../shared/api'
 import type { Effort, Settings, UpdateStatus } from '../../../shared/types'
+import { listVoices, speak } from '../lib/speech'
 import { CharactersTab } from './CharactersTab'
 import { Row, StatusText, Switch } from './controls'
 import { HotkeyRecorder } from './HotkeyRecorder'
@@ -146,6 +147,98 @@ function GeneralTab({ settings, update }: TabProps) {
               </option>
             ))}
           </select>
+        </Row>
+      </div>
+      <VoiceCard settings={settings} update={update} />
+    </>
+  )
+}
+
+const RATES = [
+  { value: 0.8, label: 'Slower' },
+  { value: 1, label: 'Normal' },
+  { value: 1.25, label: 'Faster' },
+  { value: 1.5, label: 'Fastest' }
+]
+
+function VoiceCard({ settings, update }: TabProps) {
+  const voice = settings.voice
+  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([])
+  const [services, setServices] = useState<{ id: string; label: string; defaultModel: string }[]>([])
+  useEffect(() => {
+    void listVoices().then((v) => setVoices([...v].sort((a, b) => a.lang.localeCompare(b.lang) || a.name.localeCompare(b.name))))
+  }, [])
+  useEffect(() => {
+    void window.api.voiceProviders().then(setServices)
+  }, [settings.providers])
+  const setVoice = (patch: Partial<typeof voice>) => void update({ voice: { ...voice, ...patch } })
+  const service = services.find((s) => s.id === voice.transcribeProviderId)
+
+  return (
+    <>
+      <h2 className="section-title">Voice</h2>
+      <div className="card">
+        <Row label="Read answers aloud" hint="Uses your computer's built-in voices. Every answer also has a Read aloud button.">
+          <Switch checked={voice.readAloud} onChange={(v) => setVoice({ readAloud: v })} />
+        </Row>
+        <Row label="Voice">
+          <div style={{ display: 'flex', gap: 6 }}>
+            <select className="field" style={{ width: 230 }} value={voice.voiceName} onChange={(e) => setVoice({ voiceName: e.target.value })}>
+              <option value="">System default</option>
+              {voices.map((v) => (
+                <option key={v.name} value={v.name}>
+                  {v.name} ({v.lang})
+                </option>
+              ))}
+            </select>
+            <select className="field" value={voice.rate} onChange={(e) => setVoice({ rate: Number(e.target.value) })}>
+              {RATES.map((r) => (
+                <option key={r.value} value={r.value}>
+                  {r.label}
+                </option>
+              ))}
+            </select>
+            <button
+              className="btn"
+              onClick={() => void speak("Hi! This is how I'll sound.", { voiceName: voice.voiceName, rate: voice.rate })}
+            >
+              Test
+            </button>
+          </div>
+        </Row>
+        <Row
+          label="Voice input"
+          hint={
+            services.length
+              ? 'The mic button records you and turns speech into text with this service.'
+              : 'Add OpenAI or Groq in AI Providers to talk with the mic button. You can also use your system dictation (Fn twice on Mac, Win+H on Windows).'
+          }
+        >
+          <div style={{ display: 'flex', gap: 6 }}>
+            <select
+              className="field"
+              style={{ width: 180 }}
+              value={service ? voice.transcribeProviderId : ''}
+              onChange={(e) => setVoice({ transcribeProviderId: e.target.value, transcribeModel: '' })}
+            >
+              <option value="">Off</option>
+              {services.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.label}
+                </option>
+              ))}
+            </select>
+            {service && (
+              <input
+                className="field"
+                style={{ width: 170 }}
+                title="Speech-to-text model"
+                placeholder={service.defaultModel}
+                value={voice.transcribeModel}
+                onChange={(e) => setVoice({ transcribeModel: e.target.value.trim() })}
+              />
+            )}
+          </div>
         </Row>
       </div>
     </>

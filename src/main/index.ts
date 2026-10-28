@@ -12,6 +12,7 @@ import {
   net,
   Notification,
   screen,
+  session,
   systemPreferences,
   powerMonitor,
   protocol,
@@ -43,6 +44,7 @@ import { looksLikeSecret, stripHiddenChars } from './guards'
 import { buildQuickActionPrompt } from './quickActions'
 import { AttachmentStore } from './attachments'
 import { captureScreen } from './screenshot'
+import { canTranscribe, defaultTranscribeModel, transcribe } from './transcribe'
 import { Reminders, formatWhen, type Reminder } from './reminders'
 import { CharacterWindow, openSettingsWindow } from './windows'
 
@@ -61,6 +63,21 @@ if (!app.requestSingleInstanceLock()) {
 }
 
 async function main(): Promise<void> {
+  // Web permissions: only the microphone (voice input) and writing to the clipboard (Copy buttons).
+  // Without a handler, Electron would grant everything, including the camera.
+  session.defaultSession.setPermissionRequestHandler((_wc, permission, callback, details) => {
+    if (permission === 'media') {
+      const types = (details as { mediaTypes?: string[] }).mediaTypes ?? []
+      return callback(types.length > 0 && types.every((t) => t === 'audio'))
+    }
+    callback(permission === 'clipboard-sanitized-write')
+  })
+  session.defaultSession.setPermissionCheckHandler(
+    (_wc, permission, _origin, details) =>
+      permission === 'clipboard-sanitized-write' ||
+      (permission === 'media' && (details as { mediaType?: string }).mediaType !== 'video')
+  )
+
   const userData = app.getPath('userData')
   const resourcesDir = app.isPackaged ? process.resourcesPath : join(app.getAppPath(), 'resources')
 
@@ -380,6 +397,35 @@ async function main(): Promise<void> {
       return data ? `data:${mediaType};base64,${data}` : null
     } catch {
       return null
+    }
+  })
+  handle('voice:providers', () =>
+    settings
+      .get()
+      .providers.filter(canTranscribe)
+      .map((p) => ({ id: p.id, label: p.label, defaultModel: defaultTranscribeModel(p.baseUrl) }))
+  )
+  handle('voice:microphone', async () => {
+    if (process.platform !== 'darwin') return { ok: true }
+    const status = systemPreferences.getMediaAccessStatus('microphone')
+    if (status === 'granted') return { ok: true }
+    if (status === 'not-determined' && (await systemPreferences.askForMediaAccess('microphone'))) return { ok: true }
+    void shell.openExternal('x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone')
+    return {
+      ok: false,
+      message: 'To talk to the assistant, turn on OS Assistant in System Settings → Privacy & Security → Microphone.'
+    }
+  })
+  handle('voice:transcribe', async (audio: unknown, mimeType: unknown) => {
+    const voice = settings.get().voice
+    const config = settings.get().providers.find((p) => p.id === voice.transcribeProviderId)
+    if (!config || !canTranscribe(config))
+      throw new Error('Voice input is off. Choose a speech-to-text service in Settings → General.')
+    const apiKey = secrets.get(config.id)
+    try {
+      return await transcribe({ config, apiKey, model: voice.transcribeModel, audio, mimeType })
+    } catch (err) {
+      throw new Error(createProvider(config, apiKey).describeError(err))
     }
   })
   handle('screen:capture', () =>

@@ -2,8 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import type { QuickActionsRequest } from '../../../shared/api'
 import { QUICK_ACTIONS } from '../../../shared/quickActions'
 import type { CharacterInfo, ModelInfo, ProviderView, Rect, Settings } from '../../../shared/types'
-import { IconBack, IconClose, IconGear, IconHistory, IconPaperclip, IconPlus, IconScreen, IconSend, IconStop } from '../lib/icons'
-import { type DraftImage, fromBase64, prepareImage } from './images'
+import { IconBack, IconClose, IconGear, IconHistory, IconMic, IconPaperclip, IconPlus, IconScreen, IconSend, IconStop } from '../lib/icons'
+import { type DraftImage, fromBase64, prepareImage, toBase64 } from './images'
 import { BubbleFrame } from './BubbleFrame'
 import { HistoryPanel } from './HistoryPanel'
 import { MessageList } from './MessageList'
@@ -21,6 +21,8 @@ export function ChatBubble(props: {
   focusToken: number
   quickActions: QuickActionsRequest | null
   onCloseQuickActions(): void
+  speaking: boolean
+  onSpeak(text: string): void
   onTyping(): void
   onClose(): void
 }) {
@@ -61,6 +63,63 @@ export function ChatBubble(props: {
     else setImages((cur) => [...cur, fromBase64(shot)])
     input.current?.focus()
   }
+
+  // ---- voice input: record, then turn speech into text with the chosen service
+  const [recording, setRecording] = useState(false)
+  const [transcribing, setTranscribing] = useState(false)
+  const recorder = useRef<MediaRecorder | null>(null)
+
+  const startRecording = async () => {
+    setAttachError(null)
+    if (!props.settings.voice.transcribeProviderId) {
+      setAttachError(
+        window.api.platform === 'darwin'
+          ? "Voice input isn't set up: choose a speech-to-text service in Settings → General. Or use your Mac's dictation: press the Fn (🌐) key twice."
+          : "Voice input isn't set up: choose a speech-to-text service in Settings → General. Or press Win+H to dictate."
+      )
+      return
+    }
+    const mic = await window.api.requestMicrophone()
+    if (!mic.ok) return setAttachError(mic.message ?? "Can't use the microphone.")
+    let stream: MediaStream
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+    } catch {
+      return setAttachError("Couldn't use the microphone.")
+    }
+    const mimeType = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4'].find((t) => MediaRecorder.isTypeSupported(t))
+    const rec = new MediaRecorder(stream, mimeType ? { mimeType } : undefined)
+    const chunks: Blob[] = []
+    const listening = setInterval(props.onTyping, 400) // the character looks like it's listening
+    const autoStop = setTimeout(() => rec.state === 'recording' && rec.stop(), 120_000)
+    rec.ondataavailable = (e) => chunks.push(e.data)
+    rec.onstop = async () => {
+      clearInterval(listening)
+      clearTimeout(autoStop)
+      stream.getTracks().forEach((t) => t.stop())
+      setRecording(false)
+      const blob = new Blob(chunks, { type: rec.mimeType })
+      if (blob.size < 2000) return // too short to be speech
+      setTranscribing(true)
+      try {
+        const text = await window.api.transcribe(await toBase64(blob), rec.mimeType)
+        if (text) setDraft((d) => (d.trim() ? `${d.trimEnd()} ${text}` : text))
+      } catch (err) {
+        setAttachError(String(err instanceof Error ? err.message : err).replace(/^Error invoking remote method '[^']+': (Error: )?/, ''))
+      } finally {
+        setTranscribing(false)
+        input.current?.focus()
+      }
+    }
+    recorder.current = rec
+    rec.start()
+    setRecording(true)
+  }
+  const stopRecording = () => {
+    if (recorder.current?.state === 'recording') recorder.current.stop()
+  }
+  // Stop recording if the bubble goes away.
+  useEffect(() => () => stopRecording(), [])
 
   // Dropping a file anywhere on the bubble attaches it (and stops Electron from opening the file as a page).
   useEffect(() => {
@@ -188,6 +247,8 @@ export function ChatBubble(props: {
             onDismissError={chat.dismissError}
             onSuggestion={(text) => void chat.send(text)}
             onRetry={() => void chat.retry()}
+            speaking={props.speaking}
+            onSpeak={props.onSpeak}
             onEdit={(text) => {
               setDraft(text)
               setEditing(true)
@@ -217,8 +278,17 @@ export function ChatBubble(props: {
             </div>
           )}
           <div className="composer">
-            {canAttach && (
-              <div className="composer-tools">
+            <div className="composer-tools">
+              <button
+                className={`icon-btn${recording ? ' recording' : ''}`}
+                title={recording ? 'Stop and insert text' : transcribing ? 'Turning speech into text…' : 'Talk instead of typing'}
+                disabled={transcribing}
+                onClick={() => (recording ? stopRecording() : void startRecording())}
+              >
+                <IconMic />
+              </button>
+              {canAttach && (
+                <>
                 <button className="icon-btn" title="Attach an image" onClick={() => filePicker.current?.click()}>
                   <IconPaperclip />
                 </button>
@@ -241,13 +311,22 @@ export function ChatBubble(props: {
                     e.target.value = ''
                   }}
                 />
-              </div>
-            )}
+                </>
+              )}
+            </div>
             <textarea
               ref={input}
               rows={1}
               value={draft}
-              placeholder={quick?.length ? 'Ask something about the copied text…' : `Ask ${character.name} anything…`}
+              placeholder={
+                recording
+                  ? 'Listening… click the mic again when you’re done'
+                  : transcribing
+                    ? 'Turning speech into text…'
+                    : quick?.length
+                      ? 'Ask something about the copied text…'
+                      : `Ask ${character.name} anything…`
+              }
               onChange={(e) => {
                 setDraft(e.target.value)
                 props.onTyping()

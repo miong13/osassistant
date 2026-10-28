@@ -88,6 +88,14 @@ export interface Api {
   openReleasesPage(): void
   onUpdateStatus(cb: (s: UpdateStatus) => void): () => void
 
+  // voice
+  /** Services that can turn speech into text (OpenAI-compatible ones with a transcription endpoint). */
+  voiceProviders(): Promise<{ id: string; label: string; defaultModel: string }[]>
+  /** Ask for microphone access (macOS); ok=false explains how to allow it. */
+  requestMicrophone(): Promise<{ ok: boolean; message?: string }>
+  /** Recorded speech (base64) to text. */
+  transcribe(audio: string, mimeType: string): Promise<string>
+
   // misc
   checkHotkey(accelerator: string, kind?: 'chat' | 'selection'): Promise<{ ok: boolean; message: string }>
   /** The selection hotkey was pressed: show actions for the copied text. */

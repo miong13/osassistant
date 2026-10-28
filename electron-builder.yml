@@ -34,6 +34,8 @@ mac:
   entitlementsInherit: build/entitlements.mac.plist
   extendInfo:
     LSUIElement: true
+    # Shown by macOS when voice input first asks for the microphone.
+    NSMicrophoneUsageDescription: OS Assistant uses the microphone when you talk to it with the mic button.
 win:
   target: nsis
 nsis:

@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { ApprovalDecision, CharacterInfo, ChatMessage, ChatPart } from '../../../shared/types'
-import { IconCopy, IconEdit, IconRetry, IconWrench } from '../lib/icons'
+import { IconCopy, IconEdit, IconRetry, IconSpeaker, IconWrench } from '../lib/icons'
 import { Markdown } from './Markdown'
+import { answerText, splitTurns, textOf } from './turns'
 import type { ChatState, PendingApproval, ToolStatus } from './useChat'
 
 type ToolResult = Extract<ChatPart, { type: 'tool_result' }>
@@ -16,6 +17,9 @@ export function MessageList(props: {
   onSuggestion(text: string): void
   onRetry(): void
   onEdit(text: string): void
+  /** Read text aloud, or stop if already reading. */
+  onSpeak(text: string): void
+  speaking: boolean
 }) {
   const { state, character } = props
   const scroller = useRef<HTMLDivElement>(null)
@@ -91,11 +95,7 @@ export function MessageList(props: {
         const isLast = ti === turns.length - 1
         const idle = !state.busy
         const question = turn.user ? textOf(turn.user.parts) : ''
-        const answer = turn.replies
-          .filter((m) => m.role === 'assistant')
-          .map((m) => textOf(m.parts).trim())
-          .filter(Boolean)
-          .join('\n\n')
+        const answer = answerText(turn)
         const canCopy = Boolean(answer) && !(isLast && state.busy)
         const canRetry = isLast && idle && Boolean(turn.user)
         return (
@@ -125,6 +125,11 @@ export function MessageList(props: {
             {(canCopy || canRetry) && (
               <div className="msg-actions">
                 {canCopy && <CopyButton text={answer} />}
+                {canCopy && (
+                  <button className="ghost-btn" title="Read this answer aloud" onClick={() => props.onSpeak(answer)}>
+                    <IconSpeaker /> {props.speaking ? 'Stop' : 'Read aloud'}
+                  </button>
+                )}
                 {canRetry && (
                   <button className="ghost-btn" title="Answer again" onClick={props.onRetry}>
                     <IconRetry /> Retry
@@ -229,21 +234,6 @@ const HIDDEN = /[\u{E0000}-\u{E007F}\u200B-\u200F\u202A-\u202E\u2060-\u2069\uFEF
 
 function showHidden(text: string): string {
   return text.replace(HIDDEN, (c) => `\\u{${c.codePointAt(0)!.toString(16)}}`)
-}
-
-/** A user message and everything that answered it. */
-function splitTurns(messages: ChatMessage[]): { user?: ChatMessage; replies: ChatMessage[] }[] {
-  const turns: { user?: ChatMessage; replies: ChatMessage[] }[] = []
-  for (const m of messages) {
-    if (m.role === 'user') turns.push({ user: m, replies: [] })
-    else if (turns.length) turns[turns.length - 1].replies.push(m)
-    else turns.push({ replies: [m] })
-  }
-  return turns
-}
-
-function textOf(parts: ChatPart[]): string {
-  return parts.map((p) => (p.type === 'text' ? p.text : '')).join('')
 }
 
 function CopyButton({ text }: { text: string }) {

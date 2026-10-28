@@ -61,6 +61,10 @@ const api: Api = {
   installUpdate: () => ipcRenderer.send('updates:install'),
   openReleasesPage: () => ipcRenderer.send('updates:open-page'),
   onUpdateStatus: (cb) => on('update-status', cb),
+
+  voiceProviders: () => invoke('voice:providers'),
+  requestMicrophone: () => invoke('voice:microphone'),
+  transcribe: (audio, mimeType) => invoke('voice:transcribe', audio, mimeType),
   dismissTip: () => ipcRenderer.send('tip:dismiss'),
   acceptTip: (tip) => ipcRenderer.send('tip:accept', tip),
   openSettings: (tab) => ipcRenderer.send('settings:open', tab),
