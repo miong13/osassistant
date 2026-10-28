@@ -37,10 +37,10 @@ export function toOpenAIMessages(system: string, messages: ChatMessage[]): ChatC
 }
 
 /**
- * Some gateways list models that only work through other API formats. Returns a check for which
- * listed models can be used through chat completions, or null to keep them all.
+ * Some services list models that can't be used for chat here. Returns a function that maps a listed
+ * model id to the id to use for chat, or null to hide it. Returns null when every model can be used.
  */
-export function chatModelFilter(baseUrl: string): ((id: string) => boolean) | null {
+export function chatModelFilter(baseUrl: string): ((id: string) => string | null) | null {
   let host = ''
   try {
     host = new URL(baseUrl).hostname
@@ -49,7 +49,16 @@ export function chatModelFilter(baseUrl: string): ((id: string) => boolean) | nu
   }
   // OpenCode Zen / Go: Claude, GPT, Gemini, Grok etc. use other formats, and free models only work inside OpenCode.
   if (host === 'opencode.ai' || host.endsWith('.opencode.ai')) {
-    return (id) => /^(deepseek|glm|kimi|minimax|mistral|qwen3\.8-max)/.test(id) && !id.endsWith('-free')
+    return (id) => (/^(deepseek|glm|kimi|minimax|mistral|qwen3\.8-max)/.test(id) && !id.endsWith('-free') ? id : null)
+  }
+  // Google Gemini: ids come as "models/gemini-…", and the list includes embedding, image, speech and video models.
+  if (host === 'generativelanguage.googleapis.com') {
+    return (listed) => {
+      const id = listed.replace(/^models\//, '')
+      return id.startsWith('gemini-') && !/embedding|image|tts|audio|live|veo|imagen|computer-use|robotics/.test(id)
+        ? id
+        : null
+    }
   }
   return null
 }
@@ -72,7 +81,8 @@ export class OpenAICompatibleProvider implements ChatProvider {
       const listed: ModelInfo[] = []
       const usable = chatModelFilter(this.baseUrl)
       for await (const m of this.client.models.list()) {
-        if (!usable || usable(m.id)) listed.push({ id: m.id, label: m.id })
+        const id = usable ? usable(m.id) : m.id
+        if (id) listed.push({ id, label: id })
       }
       return [...extra, ...listed.filter((m) => !this.extraModels.includes(m.id))]
     } catch (err) {
@@ -107,11 +117,17 @@ export class OpenAICompatibleProvider implements ChatProvider {
         handlers.onText(delta.content)
       }
       for (const tc of delta?.tool_calls ?? []) {
-        const cur = calls.get(tc.index) ?? { id: '', name: '', args: '' }
+        // Some services (e.g. Gemini) can leave out `index`; then a new id means a new call.
+        let index: number | undefined = tc.index
+        if (index === undefined) {
+          const last = calls.size - 1
+          index = last < 0 || (tc.id && calls.get(last)?.id && calls.get(last)?.id !== tc.id) ? calls.size : last
+        }
+        const cur = calls.get(index) ?? { id: '', name: '', args: '' }
         if (tc.id) cur.id = tc.id
         if (tc.function?.name) cur.name += tc.function.name
         if (tc.function?.arguments) cur.args += tc.function.arguments
-        calls.set(tc.index, cur)
+        calls.set(index, cur)
       }
       if (choice.finish_reason) finish = choice.finish_reason
     }

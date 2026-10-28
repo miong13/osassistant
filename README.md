@@ -14,7 +14,7 @@ Runs on macOS and Windows. Built with Electron, React and TypeScript.
   <tr>
     <td width="50%">
       <img src="docs/screenshots/ai-providers.png" alt="AI Providers settings">
-      <p align="center"><b>AI providers</b>: Claude, Ollama, OpenAI, OpenRouter, Groq, OpenCode, LM Studio or any compatible URL</p>
+      <p align="center"><b>AI providers</b>: Claude, Ollama, OpenAI, Google Gemini, OpenRouter, Groq, OpenCode, LM Studio or any compatible URL</p>
     </td>
     <td width="50%">
       <img src="docs/screenshots/tools.png" alt="Tools settings">
@@ -50,7 +50,7 @@ The app lives in the menu bar (tray). Default hotkey: **Option+Space** (Alt+Spac
 - **Click** the character to open the chat. **Drag** it anywhere; it remembers where you left it.
 - Pick the model from the menu at the top of the chat bubble.
 - **Settings** (gear icon or tray menu):
-  - **AI Providers**: add your Claude API key, point Ollama at another host, or add OpenAI, OpenRouter, Groq, OpenCode, LM Studio or any OpenAI-compatible URL.
+  - **AI Providers**: add your Claude API key, point Ollama at another host, or add OpenAI, Google Gemini, OpenRouter, Groq, OpenCode, LM Studio or any OpenAI-compatible URL.
   - **Tools**: the built-in **Desktop** tools open apps (Word, Excel, browsers, code editors, calendar, Teams, Zoom…), files, websites and meeting/call links, find files by name, and show files in Finder/Explorer. Apps can be asked for by type ("a spreadsheet", "calendar", "video call"), and a missing app is swapped for a similar installed one (Excel → Numbers → LibreOffice → Google Sheets). The fallback lists are in `src/main/desktop/categories.ts`. These tools open apps but can't read what's inside them; use an MCP server for that. Add more tools from MCP servers by command (stdio) or URL, import them from Claude Desktop, or edit them as JSON. Each tool asks for approval first unless you set it to "Always allow".
   - **Characters**: switch characters, or add your own pack.
   - **Tips**: greeting, break reminders, random tips and the clipboard helper (off by default).

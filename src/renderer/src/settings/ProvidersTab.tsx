@@ -5,6 +5,7 @@ import type { TabProps } from './SettingsApp'
 
 const PRESETS: { label: string; baseUrl: string; needsKey: boolean }[] = [
   { label: 'OpenAI', baseUrl: 'https://api.openai.com/v1', needsKey: true },
+  { label: 'Google Gemini', baseUrl: 'https://generativelanguage.googleapis.com/v1beta/openai/', needsKey: true },
   { label: 'OpenRouter', baseUrl: 'https://openrouter.ai/api/v1', needsKey: true },
   { label: 'Groq', baseUrl: 'https://api.groq.com/openai/v1', needsKey: true },
   { label: 'OpenCode Zen', baseUrl: 'https://opencode.ai/zen/v1', needsKey: true },
