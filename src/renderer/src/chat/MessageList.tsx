@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useRef } from 'react'
-import type { ApprovalDecision, CharacterInfo, ChatPart } from '../../../shared/types'
-import { IconWrench } from '../lib/icons'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import type { ApprovalDecision, CharacterInfo, ChatMessage, ChatPart } from '../../../shared/types'
+import { IconCopy, IconEdit, IconRetry, IconWrench } from '../lib/icons'
 import { Markdown } from './Markdown'
 import type { ChatState, PendingApproval, ToolStatus } from './useChat'
 
@@ -14,10 +14,14 @@ export function MessageList(props: {
   onApprove(requestId: string, d: ApprovalDecision): void
   onDismissError(): void
   onSuggestion(text: string): void
+  onRetry(): void
+  onEdit(text: string): void
 }) {
   const { state, character } = props
   const scroller = useRef<HTMLDivElement>(null)
   const stick = useRef(true)
+
+  const turns = useMemo(() => splitTurns(state.messages), [state.messages])
 
   const results = useMemo(() => {
     const map = new Map<string, ToolResult>()
@@ -30,6 +34,31 @@ export function MessageList(props: {
     const el = scroller.current
     if (el && stick.current) el.scrollTop = el.scrollHeight
   }, [state.messages, state.streaming, state.approvals, state.error, state.thinking])
+
+  const renderReply = (m: ChatMessage) => {
+    if (m.role !== 'assistant') return null
+    return m.parts.map((p, i) => {
+      if (p.type === 'text')
+        return p.text.trim() ? (
+          <div key={`${m.id}-${i}`} className="msg assistant">
+            <Markdown text={p.text} />
+          </div>
+        ) : null
+      if (p.type === 'tool_call')
+        return (
+          <ToolCard
+            key={`${m.id}-${i}`}
+            name={p.name}
+            input={p.input}
+            result={results.get(p.id)}
+            status={state.toolStatus[p.id]}
+            approval={state.approvals.find((a) => a.toolCallId === p.id)}
+            onApprove={props.onApprove}
+          />
+        )
+      return null
+    })
+  }
 
   const streamingEntries = Object.entries(state.streaming)
   const showTyping =
@@ -58,37 +87,42 @@ export function MessageList(props: {
         </div>
       )}
 
-      {state.messages.map((m) => {
-        if (m.role === 'tool') return null
-        if (m.role === 'user') {
-          const text = m.parts.map((p) => (p.type === 'text' ? p.text : '')).join('')
-          return (
-            <div key={m.id} className="msg user">
-              {text}
-            </div>
-          )
-        }
-        return m.parts.map((p, i) => {
-          if (p.type === 'text')
-            return p.text.trim() ? (
-              <div key={`${m.id}-${i}`} className="msg assistant">
-                <Markdown text={p.text} />
+      {turns.map((turn, ti) => {
+        const isLast = ti === turns.length - 1
+        const idle = !state.busy
+        const question = turn.user ? textOf(turn.user.parts) : ''
+        const answer = turn.replies
+          .filter((m) => m.role === 'assistant')
+          .map((m) => textOf(m.parts).trim())
+          .filter(Boolean)
+          .join('\n\n')
+        const canCopy = Boolean(answer) && !(isLast && state.busy)
+        const canRetry = isLast && idle && Boolean(turn.user)
+        return (
+          <div key={turn.user?.id ?? `turn-${ti}`} className={`turn${isLast ? ' last' : ''}`}>
+            {turn.user && (
+              <div className="user-row">
+                {isLast && idle && (
+                  <button className="ghost-btn msg-edit" title="Edit message" onClick={() => props.onEdit(question)}>
+                    <IconEdit />
+                  </button>
+                )}
+                <div className="msg user">{question}</div>
               </div>
-            ) : null
-          if (p.type === 'tool_call')
-            return (
-              <ToolCard
-                key={`${m.id}-${i}`}
-                name={p.name}
-                input={p.input}
-                result={results.get(p.id)}
-                status={state.toolStatus[p.id]}
-                approval={state.approvals.find((a) => a.toolCallId === p.id)}
-                onApprove={props.onApprove}
-              />
-            )
-          return null
-        })
+            )}
+            {turn.replies.map(renderReply)}
+            {(canCopy || canRetry) && (
+              <div className="msg-actions">
+                {canCopy && <CopyButton text={answer} />}
+                {canRetry && (
+                  <button className="ghost-btn" title="Answer again" onClick={props.onRetry}>
+                    <IconRetry /> Retry
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        )
       })}
 
       {streamingEntries.map(([id, text]) =>
@@ -184,4 +218,36 @@ const HIDDEN = /[\u{E0000}-\u{E007F}\u200B-\u200F\u202A-\u202E\u2060-\u2069\uFEF
 
 function showHidden(text: string): string {
   return text.replace(HIDDEN, (c) => `\\u{${c.codePointAt(0)!.toString(16)}}`)
+}
+
+/** A user message and everything that answered it. */
+function splitTurns(messages: ChatMessage[]): { user?: ChatMessage; replies: ChatMessage[] }[] {
+  const turns: { user?: ChatMessage; replies: ChatMessage[] }[] = []
+  for (const m of messages) {
+    if (m.role === 'user') turns.push({ user: m, replies: [] })
+    else if (turns.length) turns[turns.length - 1].replies.push(m)
+    else turns.push({ replies: [m] })
+  }
+  return turns
+}
+
+function textOf(parts: ChatPart[]): string {
+  return parts.map((p) => (p.type === 'text' ? p.text : '')).join('')
+}
+
+function CopyButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false)
+  return (
+    <button
+      className="ghost-btn"
+      title="Copy answer"
+      onClick={() => {
+        void navigator.clipboard.writeText(text)
+        setCopied(true)
+        setTimeout(() => setCopied(false), 1200)
+      }}
+    >
+      <IconCopy /> {copied ? 'Copied' : 'Copy'}
+    </button>
+  )
 }

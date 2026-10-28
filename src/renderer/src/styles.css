@@ -362,6 +362,69 @@ textarea.field {
   }
 }
 
+.turn {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.user-row {
+  align-self: flex-end;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 92%;
+}
+.user-row .msg.user {
+  max-width: 100%;
+}
+.ghost-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: none;
+  background: transparent;
+  color: var(--text-3);
+  font-size: 12px;
+  padding: 3px 6px;
+  border-radius: 6px;
+  transition: opacity 0.15s;
+}
+.ghost-btn:hover {
+  background: var(--surface-2);
+  color: var(--text-2);
+}
+.ghost-btn svg {
+  width: 13px;
+  height: 13px;
+}
+/* Edit and older answers' buttons show on hover, so the chat stays clean. */
+.msg-edit,
+.turn:not(.last) .msg-actions {
+  opacity: 0;
+}
+.user-row:hover .msg-edit,
+.turn:hover .msg-actions,
+.msg-edit:focus-visible,
+.msg-actions:focus-within {
+  opacity: 1;
+}
+.msg-actions {
+  display: flex;
+  gap: 2px;
+  margin-top: -6px;
+}
+.edit-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 10px 6px 12px;
+  border-top: 1px solid var(--border);
+  background: var(--accent-soft);
+  color: var(--text-2);
+  font-size: 12px;
+}
+
 .error-banner {
   align-self: stretch;
   background: var(--danger-soft);

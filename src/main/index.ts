@@ -278,6 +278,12 @@ async function main(): Promise<void> {
     return id
   })
   handle('chat:stop', (id: string) => orchestrator.stop(id))
+  handle('chat:retry', async (id: string) => {
+    await orchestrator.retry(id)
+  })
+  handle('chat:edit', async (id: string, text: string) => {
+    await orchestrator.editLast(id, text)
+  })
   handle('chat:approve', (requestId: string, decision: ApprovalDecision) =>
     orchestrator.resolveApproval(requestId, decision)
   )

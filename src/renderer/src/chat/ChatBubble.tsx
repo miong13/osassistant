@@ -20,6 +20,8 @@ export function ChatBubble(props: {
   const { chat, character } = props
   const [showHistory, setShowHistory] = useState(false)
   const [draft, setDraft] = useState('')
+  /** True while the composer is editing the last message instead of writing a new one. */
+  const [editing, setEditing] = useState(false)
   const input = useRef<HTMLTextAreaElement>(null)
 
   useEffect(() => {
@@ -36,9 +38,20 @@ export function ChatBubble(props: {
 
   const submit = () => {
     if (!draft.trim() || chat.state.busy) return
-    void chat.send(draft)
+    void (editing ? chat.editLast(draft) : chat.send(draft))
+    setDraft('')
+    setEditing(false)
+  }
+
+  const cancelEdit = () => {
+    setEditing(false)
     setDraft('')
   }
+
+  // Editing belongs to the chat it started in.
+  useEffect(() => {
+    setEditing(false)
+  }, [chat.state.conversationId])
 
   return (
     <BubbleFrame rect={props.rect} side={props.side} tailY={props.tailY}>
@@ -91,7 +104,21 @@ export function ChatBubble(props: {
             onApprove={chat.approve}
             onDismissError={chat.dismissError}
             onSuggestion={(text) => void chat.send(text)}
+            onRetry={() => void chat.retry()}
+            onEdit={(text) => {
+              setDraft(text)
+              setEditing(true)
+              input.current?.focus()
+            }}
           />
+          {editing && (
+            <div className="edit-banner">
+              <span>Editing your last message. Sending replaces it and its answer.</span>
+              <button className="btn small" onClick={cancelEdit}>
+                Cancel
+              </button>
+            </div>
+          )}
           <div className="composer">
             <textarea
               ref={input}
@@ -107,7 +134,8 @@ export function ChatBubble(props: {
                   e.preventDefault()
                   submit()
                 } else if (e.key === 'Escape') {
-                  props.onClose()
+                  if (editing) cancelEdit()
+                  else props.onClose()
                 }
               }}
             />
@@ -116,7 +144,7 @@ export function ChatBubble(props: {
                 <IconStop />
               </button>
             ) : (
-              <button className="send-btn" title="Send (Enter)" disabled={!draft.trim()} onClick={submit}>
+              <button className="send-btn" title={editing ? 'Save and resend (Enter)' : 'Send (Enter)'} disabled={!draft.trim()} onClick={submit}>
                 <IconSend />
               </button>
             )}

@@ -140,6 +140,15 @@ export class SqliteChatStore implements ChatStore {
       }))
   }
 
+  deleteMessagesFrom(conversationId: string, messageId: string): void {
+    this.db
+      .prepare(
+        `DELETE FROM messages WHERE conversation_id = ?
+         AND seq >= (SELECT seq FROM messages WHERE id = ? AND conversation_id = ?)`
+      )
+      .run(conversationId, messageId, conversationId)
+  }
+
   close(): void {
     this.db.close()
   }

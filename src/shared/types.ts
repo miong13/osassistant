@@ -105,6 +105,8 @@ export type ChatEvent =
   | { type: 'thinking'; conversationId: string; active: boolean }
   | { type: 'text-delta'; conversationId: string; messageId: string; text: string }
   | { type: 'message'; conversationId: string; message: ChatMessage }
+  /** Messages were removed (retry / edit); this is the full list now. */
+  | { type: 'history'; conversationId: string; messages: ChatMessage[] }
   | {
       type: 'tool-approval'
       conversationId: string

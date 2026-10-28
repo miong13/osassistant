@@ -84,12 +84,50 @@ export class Orchestrator {
       createdAt: this.now()
     }
     store.addMessage(userMessage)
+    emit({ type: 'message', conversationId: convId, message: userMessage })
+    return this.startTurn(convId)
+  }
+
+  /** Answer the last user message again, replacing the previous answer. */
+  async retry(conversationId: string): Promise<{ conversationId: string; done: Promise<void> }> {
+    const lastUser = this.lastUserMessage(conversationId)
+    const messages = this.deps.store.getMessages(conversationId)
+    const after = messages[messages.findIndex((m) => m.id === lastUser.id) + 1]
+    if (after) this.removeFrom(conversationId, after.id)
+    return this.startTurn(conversationId)
+  }
+
+  /** Replace the last user message (and the answer to it) with new text, then answer that. */
+  async editLast(conversationId: string, text: string): Promise<{ conversationId: string; done: Promise<void> }> {
+    const lastUser = this.lastUserMessage(conversationId)
+    this.removeFrom(conversationId, lastUser.id)
+    return this.send(conversationId, text)
+  }
+
+  private lastUserMessage(conversationId: string): ChatMessage {
+    if (this.running.has(conversationId)) throw new Error('Still answering the previous message')
+    const lastUser = this.deps.store
+      .getMessages(conversationId)
+      .filter((m) => m.role === 'user')
+      .pop()
+    if (!lastUser) throw new Error('There is no message to redo in this chat.')
+    return lastUser
+  }
+
+  private removeFrom(conversationId: string, messageId: string): void {
+    this.deps.store.deleteMessagesFrom(conversationId, messageId)
+    this.historyStart.delete(conversationId)
+    this.deps.emit({ type: 'history', conversationId, messages: this.deps.store.getMessages(conversationId) })
+  }
+
+  private startTurn(convId: string): { conversationId: string; done: Promise<void> } {
+    const { emit } = this.deps
+    const settings = this.deps.getSettings()
     this.touch(convId, {
       providerId: settings.activeProviderId,
       model: settings.activeModel,
       characterId: settings.characterId
     })
-    emit({ type: 'message', conversationId: convId, message: userMessage })
 
     const controller = new AbortController()
     this.running.set(convId, controller)

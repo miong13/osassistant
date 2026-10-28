@@ -38,6 +38,10 @@ export interface Api {
   getMessages(conversationId: string): Promise<ChatMessage[]>
   sendMessage(conversationId: string | null, text: string): Promise<string>
   stop(conversationId: string): Promise<void>
+  /** Answer the last user message again. */
+  retry(conversationId: string): Promise<void>
+  /** Replace the last user message with new text and answer it. */
+  editLast(conversationId: string, text: string): Promise<void>
   approveTool(requestId: string, decision: ApprovalDecision): Promise<void>
   renameConversation(id: string, title: string): Promise<void>
   deleteConversation(id: string): Promise<void>

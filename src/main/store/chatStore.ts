@@ -9,6 +9,8 @@ export interface ChatStore {
   deleteConversation(id: string): void
   addMessage(m: ChatMessage): void
   getMessages(conversationId: string): ChatMessage[]
+  /** Delete a message and every later message in its conversation. */
+  deleteMessagesFrom(conversationId: string, messageId: string): void
 }
 
 export class MemoryChatStore implements ChatStore {
@@ -40,5 +42,12 @@ export class MemoryChatStore implements ChatStore {
   }
   getMessages(conversationId: string): ChatMessage[] {
     return this.messages.filter((m) => m.conversationId === conversationId)
+  }
+  deleteMessagesFrom(conversationId: string, messageId: string): void {
+    const own = this.getMessages(conversationId)
+    const from = own.findIndex((m) => m.id === messageId)
+    if (from < 0) return
+    const drop = new Set(own.slice(from).map((m) => m.id))
+    this.messages = this.messages.filter((m) => !drop.has(m.id))
   }
 }

@@ -94,6 +94,23 @@ export function useChat() {
     }
   }, [])
 
+  /** Run retry / edit for the open chat, showing any error in the chat. */
+  const redo = useCallback(async (action: (id: string) => Promise<void>) => {
+    const id = currentId.current
+    if (!id) return
+    setState((s) => ({ ...s, error: null, busy: true }))
+    try {
+      await action(id)
+    } catch (err) {
+      setState((s) => ({ ...s, busy: false, error: cleanIpcError(err) }))
+    }
+  }, [])
+  const retry = useCallback(() => redo((id) => window.api.retry(id)), [redo])
+  const editLast = useCallback(
+    (text: string) => (text.trim() ? redo((id) => window.api.editLast(id, text.trim())) : Promise.resolve()),
+    [redo]
+  )
+
   const stop = useCallback(() => {
     if (currentId.current) void window.api.stop(currentId.current)
   }, [])
@@ -114,7 +131,7 @@ export function useChat() {
     [open, refreshConversations]
   )
 
-  return { state, open, send, stop, approve, dismissError, remove, refreshConversations }
+  return { state, open, send, retry, editLast, stop, approve, dismissError, remove, refreshConversations }
 }
 
 function reduce(s: ChatState, e: ChatEvent): ChatState {
@@ -135,6 +152,8 @@ function reduce(s: ChatState, e: ChatEvent): ChatState {
       if (s.messages.some((m) => m.id === e.message.id)) return { ...s, streaming }
       return { ...s, streaming, messages: [...s.messages, e.message] }
     }
+    case 'history':
+      return { ...s, messages: e.messages, streaming: {}, toolStatus: {}, error: null }
     case 'tool-approval':
       return {
         ...s,
