@@ -1,4 +1,4 @@
-appId: ae.rafid.osassistant
+appId: com.miong13.osassistant
 productName: OS Assistant
 directories:
   buildResources: build
@@ -11,12 +11,30 @@ extraResources:
     to: characters
   - from: resources/icons
     to: icons
+# Releases go to GitHub; the app checks there for updates (see src/main/updater.ts).
+# CI creates the release as a draft, uploads every build, then publishes it.
+publish:
+  provider: github
+  owner: miong13
+  repo: osassistant
+  releaseType: draft
 mac:
   category: public.app-category.productivity
+  # The zip is what auto-update downloads; the dmg is for first installs.
   target:
     - target: dmg
       arch: [arm64, x64]
+    - target: zip
+      arch: [arm64, x64]
+  artifactName: OS-Assistant-${version}-${arch}.${ext}
+  # Used with a Developer ID certificate. Without one, CI signs ad-hoc and turns this off
+  # (see .github/workflows/release.yml). Notarizing starts automatically when the APPLE_* env vars are set.
+  hardenedRuntime: true
+  entitlements: build/entitlements.mac.plist
+  entitlementsInherit: build/entitlements.mac.plist
   extendInfo:
     LSUIElement: true
 win:
   target: nsis
+nsis:
+  artifactName: OS-Assistant-Setup-${version}.${ext}

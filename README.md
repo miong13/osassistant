@@ -84,6 +84,14 @@ my-buddy/
 
 States: `idle` (required), `greet`, `listen`, `think`, `talk`, `tip`, `sleep`, `error`. Missing states fall back to similar ones, then to `idle`. Images can be animated SVG (CSS animations inside the SVG), GIF, APNG, WebP, or a horizontal sprite sheet.
 
+## Releasing
+
+1. Bump the version: `npm version minor --no-git-tag-version` (or `patch`), and commit.
+2. Tag and push: `git tag v0.4.0 && git push origin master v0.4.0` (the tag must match `package.json`).
+3. GitHub Actions (`.github/workflows/release.yml`) tests, builds the Mac `.dmg`/`.zip` and the Windows installer, and publishes them as a GitHub Release.
+
+The app checks these releases every few hours (Settings → General → Check for updates automatically). On Windows, updates download in the background and install on restart. On Mac, this only works when the app is signed with a Developer ID certificate: add the secrets listed at the top of `release.yml`. Until then, Mac builds are signed ad-hoc, so on first launch users must allow the app in System Settings → Privacy & Security, and update by downloading the new version from the releases page (the app links to it).
+
 ## How it's built
 
 | Part | Where |
@@ -95,6 +103,7 @@ States: `idle` (required), `greet`, `listen`, `think`, `talk`, `tip`, `sleep`, `
 | MCP client | `src/main/mcp/manager.ts` |
 | Chat history (Electron's built-in SQLite) | `src/main/store/sqliteStore.ts` |
 | Tips | `src/main/tips/engine.ts` |
+| Auto-update | `src/main/updater.ts` |
 | UI (React) | `src/renderer/src/` |
 | Built-in characters | `resources/characters/` |
 

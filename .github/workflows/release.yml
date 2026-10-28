@@ -1,0 +1,108 @@
+# Push a tag like v0.4.0 (matching package.json) to build the Mac and Windows apps
+# and publish them as a GitHub Release. The app checks these releases for updates.
+#
+# Mac signing is optional. Without these repository secrets, the Mac app is signed ad-hoc:
+# it runs, but users must allow it in System Settings → Privacy & Security the first time,
+# and it can't update itself (it links to this releases page instead).
+#   MAC_CERTIFICATE              Developer ID Application certificate, exported as .p12, base64-encoded
+#   MAC_CERTIFICATE_PASSWORD     Password of that .p12
+#   APPLE_ID                     Apple ID email, for notarizing
+#   APPLE_APP_SPECIFIC_PASSWORD  App-specific password for that Apple ID (appleid.apple.com)
+#   APPLE_TEAM_ID                Team ID from developer.apple.com → Membership
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+concurrency: release-${{ github.ref }}
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    env:
+      ELECTRON_SKIP_BINARY_DOWNLOAD: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check the tag matches package.json
+        run: |
+          version=$(node -p "require('./package.json').version")
+          if [ "v$version" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME doesn't match package.json version $version"
+            exit 1
+          fi
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      # Create the draft first, so the parallel builds upload into one release.
+      - name: Create a draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view "$GITHUB_REF_NAME" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1 ||
+            gh release create "$GITHUB_REF_NAME" -R "$GITHUB_REPOSITORY" --draft --verify-tag \
+              --title "$GITHUB_REF_NAME" --generate-notes
+
+  build:
+    needs: prepare
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+
+      - name: Build and upload (Mac)
+        if: runner.os == 'macOS'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CERT: ${{ secrets.MAC_CERTIFICATE }}
+          CERT_PASSWORD: ${{ secrets.MAC_CERTIFICATE_PASSWORD }}
+          NOTARY_ID: ${{ secrets.APPLE_ID }}
+          NOTARY_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          NOTARY_TEAM: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          # Only set signing variables that have values: electron-builder treats an empty CSC_LINK as set.
+          if [ -n "$CERT" ]; then
+            export CSC_LINK="$CERT" CSC_KEY_PASSWORD="$CERT_PASSWORD"
+            if [ -n "$NOTARY_ID" ]; then
+              export APPLE_ID="$NOTARY_ID" APPLE_APP_SPECIFIC_PASSWORD="$NOTARY_PASSWORD" APPLE_TEAM_ID="$NOTARY_TEAM"
+            else
+              echo "::warning::Signed but not notarized: set APPLE_ID, APPLE_APP_SPECIFIC_PASSWORD and APPLE_TEAM_ID."
+            fi
+            npx electron-builder --mac --publish always
+          else
+            echo "::warning::No Mac certificate set, so the Mac app is signed ad-hoc. Users must allow it in Privacy & Security, and it can't auto-update."
+            CSC_IDENTITY_AUTO_DISCOVERY=false npx electron-builder --mac --publish always \
+              -c.mac.identity=- -c.mac.hardenedRuntime=false
+          fi
+
+      - name: Build and upload (Windows)
+        if: runner.os == 'Windows'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: npx electron-builder --win --publish always
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release edit "$GITHUB_REF_NAME" -R "$GITHUB_REPOSITORY" --draft=false --latest
