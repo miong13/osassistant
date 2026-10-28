@@ -82,7 +82,7 @@ export class CharacterWindow {
   }
 
   get visible(): boolean {
-    return Boolean(this.win?.isVisible())
+    return Boolean(this.win && !this.win.isDestroyed() && this.win.isVisible())
   }
 
   show(focus: boolean): void {

@@ -18,6 +18,7 @@ export class Updater extends EventEmitter {
   private status: UpdateStatus = { state: 'idle' }
   private timer: NodeJS.Timeout | undefined
   private manual = false
+  private stopped = false
 
   constructor(private isEnabled: () => boolean) {
     super()
@@ -58,7 +59,9 @@ export class Updater extends EventEmitter {
     this.timer = setInterval(() => this.checkIfEnabled(), CHECK_EVERY)
   }
 
+  /** Stop checking. Results of a check still in flight are ignored (the app may be quitting). */
   stop(): void {
+    this.stopped = true
     clearInterval(this.timer)
   }
 
@@ -81,10 +84,11 @@ export class Updater extends EventEmitter {
   }
 
   private checkIfEnabled(): void {
-    if (this.isEnabled()) void this.check()
+    if (this.isEnabled() && !this.stopped) void this.check()
   }
 
   private set(status: UpdateStatus): void {
+    if (this.stopped) return
     const before = this.status
     this.status = status
     this.emit('status', status)
