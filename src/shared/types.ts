@@ -49,6 +49,12 @@ export interface TipSettings {
   randomTips: boolean
 }
 
+export interface MemoryItem {
+  id: string
+  text: string
+  createdAt: number
+}
+
 export interface VoiceSettings {
   /** Read each new answer aloud with a system voice. */
   readAloud: boolean
@@ -78,6 +84,8 @@ export interface Settings {
   toolPermissions: Record<string, ToolPermission>
   tips: TipSettings
   voice: VoiceSettings
+  /** Remember facts about the user across chats (Settings → Memory). Off by default. */
+  memoryEnabled: boolean
   /** Top-left of the character on screen, per display id. */
   characterPositions: Record<string, { x: number; y: number }>
 }

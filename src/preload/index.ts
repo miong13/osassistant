@@ -62,6 +62,12 @@ const api: Api = {
   openReleasesPage: () => ipcRenderer.send('updates:open-page'),
   onUpdateStatus: (cb) => on('update-status', cb),
 
+  listMemory: () => invoke('memory:list'),
+  addMemory: (text) => invoke('memory:add', text),
+  removeMemory: (id) => invoke('memory:remove', id),
+  clearMemory: () => invoke('memory:clear'),
+  onMemory: (cb) => on('memory', cb),
+
   voiceProviders: () => invoke('voice:providers'),
   requestMicrophone: () => invoke('voice:microphone'),
   transcribe: (audio, mimeType) => invoke('voice:transcribe', audio, mimeType),

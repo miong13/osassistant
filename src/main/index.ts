@@ -47,6 +47,7 @@ import { AttachmentStore } from './attachments'
 import { captureScreen } from './screenshot'
 import { canTranscribe, defaultTranscribeModel, transcribe } from './transcribe'
 import { SystemTools } from './desktop/system'
+import { Memory } from './memory'
 import { execFile } from 'node:child_process'
 import { statfs } from 'node:fs/promises'
 import { freemem, totalmem, uptime } from 'node:os'
@@ -96,6 +97,8 @@ async function main(): Promise<void> {
   const desktop = new DesktopTools(desktopDeps())
   const reminders = new Reminders({ file: join(app.getPath('userData'), 'reminders.json') })
   const attachments = new AttachmentStore(join(app.getPath('userData'), 'attachments'))
+  const memory = new Memory({ file: join(app.getPath('userData'), 'memory.json'), isEnabled: () => settings.get().memoryEnabled })
+  memory.on('change', (items) => broadcast('memory', items))
   const system = new SystemTools({
     platform: process.platform,
     osName: process.platform === 'darwin' ? 'macOS' : process.platform === 'win32' ? 'Windows' : process.platform,
@@ -118,7 +121,7 @@ async function main(): Promise<void> {
         )
       )
   })
-  const mcp = new McpManager(() => shellPath, (name) => desktop.has(name) || reminders.has(name) || system.has(name))
+  const mcp = new McpManager(() => shellPath, (name) => desktop.has(name) || reminders.has(name) || system.has(name) || memory.has(name))
   const characterWindow = new CharacterWindow(settings)
 
   const broadcast = (channel: string, payload: unknown) => {
@@ -156,7 +159,8 @@ async function main(): Promise<void> {
   // ---------- chat ----------
   const orchestrator = new Orchestrator({
     store,
-    tools: combineToolHosts([desktop, system, reminders, mcp]),
+    tools: combineToolHosts([desktop, system, reminders, memory, mcp]),
+    getMemory: () => memory.forPrompt(),
     attachments,
     getSettings: () => settings.get(),
     getProvider,
@@ -508,7 +512,20 @@ async function main(): Promise<void> {
   })
   handle('characters:open-folder', () => shell.openPath(characters.userDir))
 
-  handle('tools:builtin', () => [...desktop.info(), ...system.info(), ...reminders.info()])
+  handle('tools:builtin', () => [...desktop.info(), ...system.info(), ...reminders.info(), ...memory.info()])
+  handle('memory:list', () => memory.list())
+  handle('memory:add', (text: string) => {
+    memory.add(String(text ?? ''))
+    return memory.list()
+  })
+  handle('memory:remove', (id: string) => {
+    memory.remove(String(id))
+    return memory.list()
+  })
+  handle('memory:clear', () => {
+    memory.clear()
+    return memory.list()
+  })
   handle('mcp:status', () => mcp.status())
   handle('mcp:restart', (name?: string) => mcp.restart(name))
   handle('mcp:import-claude', () => {

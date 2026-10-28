@@ -42,6 +42,7 @@ export const DEFAULT_SETTINGS: Settings = {
     transcribeProviderId: '',
     transcribeModel: ''
   },
+  memoryEnabled: false,
   characterPositions: {}
 }
 

@@ -6,6 +6,7 @@ import type {
   ChatMessage,
   ChatPart,
   Conversation,
+  MemoryItem,
   ProviderConfig,
   Settings
 } from '../../shared/types'
@@ -27,6 +28,8 @@ export interface OrchestratorDeps {
   getCharacter(id: string): CharacterInfo | undefined
   setToolPermission(name: string, permission: 'allow'): void
   emit(e: ChatEvent): void
+  /** Saved facts about the user, or null when memory is off. */
+  getMemory?(): MemoryItem[] | null
   /** Where attached images are kept. Without it, images can't be attached. */
   attachments?: AttachmentStore
   /** Called when a tool needs approval, so the UI can open the chat bubble. */
@@ -213,7 +216,8 @@ export class Orchestrator {
       character: this.deps.getCharacter(settings.characterId),
       hasTools: tools.length > 0,
       platform: this.deps.platform ?? process.platform,
-      date: new Date(this.now())
+      date: new Date(this.now()),
+      memory: this.deps.getMemory?.()
     })
 
     for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {

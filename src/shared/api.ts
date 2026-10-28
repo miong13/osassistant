@@ -8,6 +8,7 @@ import type {
   Layout,
   McpServerStatus,
   McpToolInfo,
+  MemoryItem,
   ModelInfo,
   ProviderConfig,
   ProviderView,
@@ -95,6 +96,13 @@ export interface Api {
   requestMicrophone(): Promise<{ ok: boolean; message?: string }>
   /** Recorded speech (base64) to text. */
   transcribe(audio: string, mimeType: string): Promise<string>
+
+  // memory
+  listMemory(): Promise<MemoryItem[]>
+  addMemory(text: string): Promise<MemoryItem[]>
+  removeMemory(id: string): Promise<MemoryItem[]>
+  clearMemory(): Promise<MemoryItem[]>
+  onMemory(cb: (items: MemoryItem[]) => void): () => void
 
   // misc
   checkHotkey(accelerator: string, kind?: 'chat' | 'selection'): Promise<{ ok: boolean; message: string }>

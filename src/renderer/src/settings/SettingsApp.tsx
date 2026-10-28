@@ -6,6 +6,7 @@ import { CharactersTab } from './CharactersTab'
 import { Row, StatusText, Switch } from './controls'
 import { HotkeyRecorder } from './HotkeyRecorder'
 import { McpTab } from './McpTab'
+import { MemoryTab } from './MemoryTab'
 import { ProvidersTab } from './ProvidersTab'
 
 const TABS = [
@@ -14,6 +15,7 @@ const TABS = [
   { id: 'mcp', label: 'Tools' },
   { id: 'characters', label: 'Characters' },
   { id: 'tips', label: 'Tips' },
+  { id: 'memory', label: 'Memory' },
   { id: 'about', label: 'About' }
 ]
 
@@ -46,6 +48,7 @@ export function SettingsApp({ initialTab }: { initialTab?: string }) {
         {tab === 'mcp' && <McpTab settings={settings} update={update} />}
         {tab === 'characters' && <CharactersTab settings={settings} update={update} />}
         {tab === 'tips' && <TipsTab settings={settings} update={update} />}
+        {tab === 'memory' && <MemoryTab settings={settings} update={update} />}
         {tab === 'about' && <AboutTab />}
       </main>
     </div>
