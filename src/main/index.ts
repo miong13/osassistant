@@ -9,6 +9,7 @@ import {
   type IpcMainEvent,
   type IpcMainInvokeEvent,
   desktopCapturer,
+  nativeTheme,
   net,
   Notification,
   screen,
@@ -45,6 +46,10 @@ import { buildQuickActionPrompt } from './quickActions'
 import { AttachmentStore } from './attachments'
 import { captureScreen } from './screenshot'
 import { canTranscribe, defaultTranscribeModel, transcribe } from './transcribe'
+import { SystemTools } from './desktop/system'
+import { execFile } from 'node:child_process'
+import { statfs } from 'node:fs/promises'
+import { freemem, totalmem, uptime } from 'node:os'
 import { Reminders, formatWhen, type Reminder } from './reminders'
 import { CharacterWindow, openSettingsWindow } from './windows'
 
@@ -91,7 +96,29 @@ async function main(): Promise<void> {
   const desktop = new DesktopTools(desktopDeps())
   const reminders = new Reminders({ file: join(app.getPath('userData'), 'reminders.json') })
   const attachments = new AttachmentStore(join(app.getPath('userData'), 'attachments'))
-  const mcp = new McpManager(() => shellPath, (name) => desktop.has(name) || reminders.has(name))
+  const system = new SystemTools({
+    platform: process.platform,
+    osName: process.platform === 'darwin' ? 'macOS' : process.platform === 'win32' ? 'Windows' : process.platform,
+    osVersion: process.getSystemVersion(),
+    home: homedir(),
+    uptimeSeconds: uptime,
+    memory: () => ({ total: totalmem(), free: freemem() }),
+    disk: async (path) => {
+      const s = await statfs(path)
+      return { free: s.bavail * s.bsize, total: s.blocks * s.bsize }
+    },
+    isOnline: () => net.isOnline(),
+    darkMode: () => nativeTheme.shouldUseDarkColors,
+    readClipboard: () => clipboard.readText(),
+    writeClipboard: (text) => clipboard.writeText(text),
+    exec: (file, args) =>
+      new Promise((resolve, reject) =>
+        execFile(file, args, { timeout: 10_000, windowsHide: true }, (err, stdout, stderr) =>
+          err ? reject(new Error(String(stderr || err.message).trim())) : resolve(String(stdout))
+        )
+      )
+  })
+  const mcp = new McpManager(() => shellPath, (name) => desktop.has(name) || reminders.has(name) || system.has(name))
   const characterWindow = new CharacterWindow(settings)
 
   const broadcast = (channel: string, payload: unknown) => {
@@ -129,7 +156,7 @@ async function main(): Promise<void> {
   // ---------- chat ----------
   const orchestrator = new Orchestrator({
     store,
-    tools: combineToolHosts([desktop, reminders, mcp]),
+    tools: combineToolHosts([desktop, system, reminders, mcp]),
     attachments,
     getSettings: () => settings.get(),
     getProvider,
@@ -481,7 +508,7 @@ async function main(): Promise<void> {
   })
   handle('characters:open-folder', () => shell.openPath(characters.userDir))
 
-  handle('tools:builtin', () => [...desktop.info(), ...reminders.info()])
+  handle('tools:builtin', () => [...desktop.info(), ...system.info(), ...reminders.info()])
   handle('mcp:status', () => mcp.status())
   handle('mcp:restart', (name?: string) => mcp.restart(name))
   handle('mcp:import-claude', () => {
