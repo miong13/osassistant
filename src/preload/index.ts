@@ -24,7 +24,9 @@ const api: Api = {
 
   listConversations: (query) => invoke('chat:list', query),
   getMessages: (id) => invoke('chat:messages', id),
-  sendMessage: (id, text) => invoke('chat:send', id, text),
+  sendMessage: (id, text, images) => invoke('chat:send', id, text, images),
+  getImage: (conversationId, id, mediaType) => invoke('chat:image', conversationId, id, mediaType),
+  captureScreen: () => invoke('screen:capture'),
   stop: (id) => invoke('chat:stop', id),
   retry: (id) => invoke('chat:retry', id),
   editLast: (id, text) => invoke('chat:edit', id, text),

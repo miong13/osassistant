@@ -29,6 +29,8 @@ export function toAnthropicMessages(messages: ChatMessage[]): BetaMessageParam[]
     } else {
       content = m.parts.flatMap((p): BetaContentBlockParam[] => {
         if (p.type === 'text') return p.text ? [{ type: 'text', text: p.text }] : []
+        if (p.type === 'image')
+          return p.data ? [{ type: 'image', source: { type: 'base64', media_type: p.mediaType, data: p.data } }] : []
         if (p.type === 'tool_call')
           return [
             { type: 'tool_use', id: p.id, name: p.name, input: (p.input ?? {}) as Record<string, unknown> }

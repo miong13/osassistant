@@ -1,13 +1,16 @@
 import { Ollama, type Message, type Tool, type ToolCall } from 'ollama'
 import type { ChatMessage, ChatPart, ModelInfo } from '../../shared/types'
-import { normalizeHistory, textOf } from './history'
+import { imagesOf, normalizeHistory, textOf } from './history'
 import type { ChatProvider, StreamHandlers, StreamRequest, TurnResult } from './types'
 import { genericErrorMessage, newToolCallId } from './types'
 
 export function toOllamaMessages(system: string, messages: ChatMessage[]): Message[] {
   const out: Message[] = [{ role: 'system', content: system }]
   for (const m of normalizeHistory(messages)) {
-    if (m.role === 'user') out.push({ role: 'user', content: textOf(m.parts) })
+    if (m.role === 'user') {
+      const images = imagesOf(m.parts).map((p) => p.data)
+      out.push({ role: 'user', content: textOf(m.parts), ...(images.length ? { images } : {}) })
+    }
     else if (m.role === 'assistant') {
       const calls = m.parts.filter((p) => p.type === 'tool_call')
       out.push({

@@ -2,11 +2,14 @@ import { useEffect, useRef, useState } from 'react'
 import type { QuickActionsRequest } from '../../../shared/api'
 import { QUICK_ACTIONS } from '../../../shared/quickActions'
 import type { CharacterInfo, ModelInfo, ProviderView, Rect, Settings } from '../../../shared/types'
-import { IconBack, IconClose, IconGear, IconHistory, IconPlus, IconSend, IconStop } from '../lib/icons'
+import { IconBack, IconClose, IconGear, IconHistory, IconPaperclip, IconPlus, IconScreen, IconSend, IconStop } from '../lib/icons'
+import { type DraftImage, fromBase64, prepareImage } from './images'
 import { BubbleFrame } from './BubbleFrame'
 import { HistoryPanel } from './HistoryPanel'
 import { MessageList } from './MessageList'
 import type { useChat } from './useChat'
+
+const MAX_IMAGES = 4
 
 export function ChatBubble(props: {
   rect: Rect
@@ -27,6 +30,54 @@ export function ChatBubble(props: {
   /** True while the composer is editing the last message instead of writing a new one. */
   const [editing, setEditing] = useState(false)
   const input = useRef<HTMLTextAreaElement>(null)
+  const filePicker = useRef<HTMLInputElement>(null)
+  const [images, setImages] = useState<DraftImage[]>([])
+  const [attachError, setAttachError] = useState<string | null>(null)
+  const [capturing, setCapturing] = useState(false)
+  const canAttach = !editing && !props.quickActions
+
+  const addImages = async (files: Blob[]) => {
+    setAttachError(null)
+    const room = MAX_IMAGES - images.length
+    if (files.length > room) setAttachError(`You can attach up to ${MAX_IMAGES} images.`)
+    for (const file of files.slice(0, Math.max(0, room))) {
+      try {
+        const img = await prepareImage(file)
+        setImages((cur) => (cur.length < MAX_IMAGES ? [...cur, img] : cur))
+      } catch (err) {
+        setAttachError(err instanceof Error ? err.message : String(err))
+      }
+    }
+    input.current?.focus()
+  }
+
+  const takeScreenshot = async () => {
+    if (images.length >= MAX_IMAGES) return setAttachError(`You can attach up to ${MAX_IMAGES} images.`)
+    setAttachError(null)
+    setCapturing(true)
+    const shot = await window.api.captureScreen()
+    setCapturing(false)
+    if ('error' in shot) setAttachError(shot.error)
+    else setImages((cur) => [...cur, fromBase64(shot)])
+    input.current?.focus()
+  }
+
+  // Dropping a file anywhere on the bubble attaches it (and stops Electron from opening the file as a page).
+  useEffect(() => {
+    const over = (e: DragEvent) => e.preventDefault()
+    const drop = (e: DragEvent) => {
+      e.preventDefault()
+      const files = [...(e.dataTransfer?.files ?? [])].filter((f) => f.type.startsWith('image/'))
+      if (files.length && canAttach) void addImages(files)
+      else if (e.dataTransfer?.files.length) setAttachError('Only images can be attached.')
+    }
+    window.addEventListener('dragover', over)
+    window.addEventListener('drop', drop)
+    return () => {
+      window.removeEventListener('dragover', over)
+      window.removeEventListener('drop', drop)
+    }
+  })
 
   useEffect(() => {
     if (!showHistory) input.current?.focus()
@@ -57,11 +108,13 @@ export function ChatBubble(props: {
       setDraft('')
       return
     }
-    if (!draft.trim() || chat.state.busy) return
+    if ((!draft.trim() && !images.length) || chat.state.busy) return
     if (quick) props.onCloseQuickActions()
-    void (editing ? chat.editLast(draft) : chat.send(draft))
+    void (editing ? chat.editLast(draft) : chat.send(draft, images.map(({ mediaType, data }) => ({ mediaType, data }))))
     setDraft('')
     setEditing(false)
+    setImages([])
+    setAttachError(null)
   }
 
   const cancelEdit = () => {
@@ -150,7 +203,46 @@ export function ChatBubble(props: {
               </button>
             </div>
           )}
+          {(images.length > 0 || attachError) && (
+            <div className="draft-images">
+              {images.map((img, i) => (
+                <div key={i} className="draft-image">
+                  <img src={img.url} alt="" />
+                  <button title="Remove" onClick={() => setImages((cur) => cur.filter((_, j) => j !== i))}>
+                    <IconClose />
+                  </button>
+                </div>
+              ))}
+              {attachError && <span className="error-text attach-error">{attachError}</span>}
+            </div>
+          )}
           <div className="composer">
+            {canAttach && (
+              <div className="composer-tools">
+                <button className="icon-btn" title="Attach an image" onClick={() => filePicker.current?.click()}>
+                  <IconPaperclip />
+                </button>
+                <button
+                  className="icon-btn"
+                  title="Attach a screenshot of your screen"
+                  disabled={capturing}
+                  onClick={() => void takeScreenshot()}
+                >
+                  <IconScreen />
+                </button>
+                <input
+                  ref={filePicker}
+                  type="file"
+                  accept="image/jpeg,image/png,image/gif,image/webp"
+                  multiple
+                  hidden
+                  onChange={(e) => {
+                    void addImages([...(e.target.files ?? [])])
+                    e.target.value = ''
+                  }}
+                />
+              </div>
+            )}
             <textarea
               ref={input}
               rows={1}
@@ -159,6 +251,13 @@ export function ChatBubble(props: {
               onChange={(e) => {
                 setDraft(e.target.value)
                 props.onTyping()
+              }}
+              onPaste={(e) => {
+                const files = [...e.clipboardData.files].filter((f) => f.type.startsWith('image/'))
+                if (files.length && canAttach) {
+                  e.preventDefault()
+                  void addImages(files)
+                }
               }}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
@@ -176,7 +275,7 @@ export function ChatBubble(props: {
                 <IconStop />
               </button>
             ) : (
-              <button className="send-btn" title={editing ? 'Save and resend (Enter)' : 'Send (Enter)'} disabled={!draft.trim()} onClick={submit}>
+              <button className="send-btn" title={editing ? 'Save and resend (Enter)' : 'Send (Enter)'} disabled={!draft.trim() && !images.length} onClick={submit}>
                 <IconSend />
               </button>
             )}

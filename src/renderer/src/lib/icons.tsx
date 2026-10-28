@@ -76,3 +76,14 @@ export const IconRetry = () => (
     <path d="M21 3v5h-5" />
   </svg>
 )
+export const IconPaperclip = () => (
+  <svg {...base}>
+    <path d="M21 11.5 12.5 20a5 5 0 0 1-7-7L14 4.5a3.3 3.3 0 0 1 4.7 4.7L10.2 17.7a1.7 1.7 0 0 1-2.4-2.4L15.5 7.6" />
+  </svg>
+)
+export const IconScreen = () => (
+  <svg {...base}>
+    <rect x="3" y="4" width="18" height="12" rx="2" />
+    <path d="M8 20h8M12 16v4" />
+  </svg>
+)

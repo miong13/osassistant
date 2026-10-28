@@ -45,9 +45,21 @@ export function normalizeHistory(messages: ChatMessage[]): ChatMessage[] {
   return out
 }
 
+/** An image costs roughly this many characters' worth of context (about 1,600 tokens). */
+export const IMAGE_SIZE = 6_400
+
 /** Rough size of a message as sent to a model, in characters (about 4 per token). */
 export function messageSize(m: ChatMessage): number {
-  return JSON.stringify(m.parts).length + (m.raw ? JSON.stringify(m.raw.content).length : 0)
+  let size = m.raw ? JSON.stringify(m.raw.content).length : 0
+  for (const p of m.parts) size += p.type === 'image' ? IMAGE_SIZE : JSON.stringify(p).length
+  return size
+}
+
+export type ImagePart = Extract<ChatPart, { type: 'image' }>
+
+/** Images that were loaded for sending (parts without data are skipped). */
+export function imagesOf(parts: ChatPart[]): (ImagePart & { data: string })[] {
+  return parts.filter((p): p is ImagePart & { data: string } => p.type === 'image' && Boolean(p.data))
 }
 
 /** When history is over budget, it is cut down to this share of it, so the cut point stays put for a while. */

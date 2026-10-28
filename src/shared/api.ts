@@ -37,7 +37,11 @@ export interface Api {
   // chat
   listConversations(query?: string): Promise<Conversation[]>
   getMessages(conversationId: string): Promise<ChatMessage[]>
-  sendMessage(conversationId: string | null, text: string): Promise<string>
+  sendMessage(conversationId: string | null, text: string, images?: NewImageInput[]): Promise<string>
+  /** An attached image as a data: URL, for showing it. */
+  getImage(conversationId: string, id: string, mediaType: string): Promise<string | null>
+  /** Screenshot of the screen under the mouse, without the character. */
+  captureScreen(): Promise<NewImageInput | { error: string }>
   stop(conversationId: string): Promise<void>
   /** Answer the last user message again. */
   retry(conversationId: string): Promise<void>
@@ -98,4 +102,10 @@ export interface QuickActionsRequest {
   length: number
   truncated: boolean
   looksSecret: boolean
+}
+
+/** An image to attach, as base64 without the data: prefix. */
+export interface NewImageInput {
+  mediaType: string
+  data: string
 }

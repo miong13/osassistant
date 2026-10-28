@@ -592,6 +592,84 @@ textarea.field {
   border-color: var(--accent);
 }
 
+/* ---------- attachments ---------- */
+
+.composer-tools {
+  display: flex;
+  align-self: flex-end;
+  margin-bottom: 2px;
+}
+.composer-tools .icon-btn svg {
+  width: 17px;
+  height: 17px;
+}
+.draft-images {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px 0;
+  border-top: 1px solid var(--border);
+}
+.draft-image {
+  position: relative;
+  width: 52px;
+  height: 52px;
+}
+.draft-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+.draft-image button {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 18px;
+  height: 18px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: none;
+  background: var(--text);
+  color: var(--surface);
+  padding: 0;
+}
+.draft-image button svg {
+  width: 11px;
+  height: 11px;
+}
+.attach-error {
+  font-size: 12px;
+}
+.msg-images {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+  max-width: 100%;
+}
+.msg-images img {
+  max-width: 160px;
+  max-height: 120px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  object-fit: cover;
+}
+.msg-images .missing {
+  font-size: 12px;
+  color: var(--text-3);
+}
+.user-col {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  min-width: 0;
+}
+
 /* ---------- quick actions (copied text) ---------- */
 
 .quick-actions {

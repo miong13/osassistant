@@ -100,6 +100,11 @@ export class CharacterWindow {
     this.win?.hide()
   }
 
+  /** Make the window see-through without hiding it (keeps focus and state), e.g. while taking a screenshot. */
+  setInvisible(invisible: boolean): void {
+    this.win?.setOpacity(invisible ? 0 : 1)
+  }
+
   dragBy(dx: number, dy: number): void {
     if (!this.win) return
     this.pos = { x: this.pos.x + dx, y: this.pos.y + dy }

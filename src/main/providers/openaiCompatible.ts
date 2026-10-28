@@ -4,14 +4,26 @@ import type {
   ChatCompletionTool
 } from 'openai/resources/chat/completions'
 import type { ChatMessage, ChatPart, ModelInfo } from '../../shared/types'
-import { normalizeHistory, textOf } from './history'
+import { imagesOf, normalizeHistory, textOf } from './history'
 import type { ChatProvider, StreamHandlers, StreamRequest, TurnResult } from './types'
 import { genericErrorMessage, newToolCallId } from './types'
 
 export function toOpenAIMessages(system: string, messages: ChatMessage[]): ChatCompletionMessageParam[] {
   const out: ChatCompletionMessageParam[] = [{ role: 'system', content: system }]
   for (const m of normalizeHistory(messages)) {
-    if (m.role === 'user') out.push({ role: 'user', content: textOf(m.parts) })
+    if (m.role === 'user') {
+      const images = imagesOf(m.parts)
+      const text = textOf(m.parts)
+      out.push({
+        role: 'user',
+        content: images.length
+          ? [
+              ...(text ? [{ type: 'text' as const, text }] : []),
+              ...images.map((p) => ({ type: 'image_url' as const, image_url: { url: `data:${p.mediaType};base64,${p.data}` } }))
+            ]
+          : text
+      })
+    }
     else if (m.role === 'assistant') {
       const calls = m.parts.filter((p) => p.type === 'tool_call')
       out.push({

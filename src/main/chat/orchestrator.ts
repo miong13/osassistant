@@ -10,6 +10,7 @@ import type {
   Settings
 } from '../../shared/types'
 import type { ToolHost } from '../mcp/manager'
+import { AttachmentStore, type NewImage } from '../attachments'
 import { fitHistory } from '../providers/history'
 import { historyBudget } from '../providers/index'
 import type { ChatProvider } from '../providers/types'
@@ -26,6 +27,8 @@ export interface OrchestratorDeps {
   getCharacter(id: string): CharacterInfo | undefined
   setToolPermission(name: string, permission: 'allow'): void
   emit(e: ChatEvent): void
+  /** Where attached images are kept. Without it, images can't be attached. */
+  attachments?: AttachmentStore
   /** Called when a tool needs approval, so the UI can open the chat bubble. */
   onApprovalNeeded?(): void
   platform?: string
@@ -57,7 +60,23 @@ export class Orchestrator {
   }
 
   /** Save the user's message and start a turn. Resolves with the conversation id once the turn ends. */
-  async send(conversationId: string | null, text: string): Promise<{ conversationId: string; done: Promise<void> }> {
+  async send(
+    conversationId: string | null,
+    text: string,
+    images: unknown = []
+  ): Promise<{ conversationId: string; done: Promise<void> }> {
+    const newImages = AttachmentStore.validate(images)
+    if (newImages.length && !this.deps.attachments) throw new Error('Images are not supported here.')
+    if (!text.trim() && !newImages.length) throw new Error('Type a message or attach an image.')
+    return this.sendParts(conversationId, text, newImages, [])
+  }
+
+  private sendParts(
+    conversationId: string | null,
+    text: string,
+    newImages: NewImage[],
+    keptImages: ChatPart[]
+  ): { conversationId: string; done: Promise<void> } {
     const settings = this.deps.getSettings()
     const { store, emit } = this.deps
     let conversation: Conversation | undefined = conversationId ? store.getConversation(conversationId) : undefined
@@ -66,7 +85,7 @@ export class Orchestrator {
       const t = this.now()
       conversation = {
         id: crypto.randomUUID(),
-        title: makeTitle(text),
+        title: makeTitle(text || 'Image'),
         characterId: settings.characterId,
         providerId: settings.activeProviderId,
         model: settings.activeModel,
@@ -80,7 +99,11 @@ export class Orchestrator {
       id: crypto.randomUUID(),
       conversationId: convId,
       role: 'user',
-      parts: [{ type: 'text', text }],
+      parts: [
+        ...keptImages,
+        ...newImages.map((img): ChatPart => ({ type: 'image', ...this.deps.attachments!.save(convId, img) })),
+        ...(text ? [{ type: 'text' as const, text }] : [])
+      ],
       createdAt: this.now()
     }
     store.addMessage(userMessage)
@@ -97,11 +120,13 @@ export class Orchestrator {
     return this.startTurn(conversationId)
   }
 
-  /** Replace the last user message (and the answer to it) with new text, then answer that. */
+  /** Replace the last user message (and the answer to it) with new text, then answer that. Its images are kept. */
   async editLast(conversationId: string, text: string): Promise<{ conversationId: string; done: Promise<void> }> {
     const lastUser = this.lastUserMessage(conversationId)
+    const images = lastUser.parts.filter((p) => p.type === 'image')
+    if (!text.trim() && !images.length) throw new Error('Type a message.')
     this.removeFrom(conversationId, lastUser.id)
-    return this.send(conversationId, text)
+    return this.sendParts(conversationId, text, [], images)
   }
 
   private lastUserMessage(conversationId: string): ChatMessage {
@@ -205,7 +230,7 @@ export class Orchestrator {
           {
             model: settings.activeModel,
             system: history.trimmed ? `${system}\n\n${TRIMMED_NOTE}` : system,
-            messages: history.messages,
+            messages: this.deps.attachments ? this.deps.attachments.hydrate(history.messages) : history.messages,
             tools,
             effort: settings.effort,
             signal

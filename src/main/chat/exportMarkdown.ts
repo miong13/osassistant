@@ -6,6 +6,8 @@ export function toMarkdown(c: Conversation, messages: ChatMessage[]): string {
     for (const p of m.parts) {
       if (p.type === 'text' && p.text.trim()) {
         lines.push(m.role === 'user' ? '## You' : '## Assistant', '', p.text, '')
+      } else if (p.type === 'image') {
+        lines.push(m.role === 'user' ? '## You' : '## Assistant', '', '_[image]_', '')
       } else if (p.type === 'tool_call') {
         lines.push(`> 🔧 Used tool \`${p.name}\``, '', '```json', JSON.stringify(p.input, null, 2), '```', '')
       } else if (p.type === 'tool_result') {

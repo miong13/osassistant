@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import type { NewImageInput } from '../../../shared/api'
 import type { ApprovalDecision, ChatEvent, ChatMessage, Conversation } from '../../../shared/types'
 
 export interface PendingApproval {
@@ -76,13 +77,13 @@ export function useChat() {
     setState((s) => ({ ...initial, conversations: s.conversations, conversationId: id, messages }))
   }, [])
 
-  const send = useCallback(async (text: string) => {
+  const send = useCallback(async (text: string, images: NewImageInput[] = []) => {
     const trimmed = text.trim()
-    if (!trimmed) return
+    if (!trimmed && !images.length) return
     if (currentId.current === null) adoptNext.current = true
     setState((s) => ({ ...s, error: null, busy: true }))
     try {
-      const id = await window.api.sendMessage(currentId.current, trimmed)
+      const id = await window.api.sendMessage(currentId.current, trimmed, images.length ? images : undefined)
       if (currentId.current === null) {
         currentId.current = id
         adoptNext.current = false

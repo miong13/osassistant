@@ -71,8 +71,13 @@ export interface Settings {
 
 // ---------- Chat ----------
 
+export type ImageMediaType = 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp'
+export const IMAGE_MEDIA_TYPES: ImageMediaType[] = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+
 export type ChatPart =
   | { type: 'text'; text: string }
+  /** An image the user attached. Stored as a file; `data` (base64) is filled in only when sending to a model. */
+  | { type: 'image'; id: string; mediaType: ImageMediaType; data?: string }
   | { type: 'tool_call'; id: string; name: string; input: unknown }
   | { type: 'tool_result'; toolCallId: string; name: string; content: string; isError?: boolean }
 

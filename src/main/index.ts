@@ -8,8 +8,11 @@ import {
   ipcMain,
   type IpcMainEvent,
   type IpcMainInvokeEvent,
+  desktopCapturer,
   net,
   Notification,
+  screen,
+  systemPreferences,
   powerMonitor,
   protocol,
   shell
@@ -19,7 +22,8 @@ import { homedir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import type { SettingsPatch } from '../shared/api'
-import type { ApprovalDecision, ChatEvent, ProviderConfig, ProviderView, Settings, Tip, UpdateStatus } from '../shared/types'
+import type { ApprovalDecision, ChatEvent, ImageMediaType, ProviderConfig, ProviderView, Settings, Tip, UpdateStatus } from '../shared/types'
+import { IMAGE_MEDIA_TYPES } from '../shared/types'
 import { ASSET_SCHEME, CharacterLibrary } from './characters/loader'
 import { Orchestrator } from './chat/orchestrator'
 import { toMarkdown } from './chat/exportMarkdown'
@@ -37,6 +41,8 @@ import { AppTray } from './tray'
 import { RELEASES_URL, Updater } from './updater'
 import { looksLikeSecret, stripHiddenChars } from './guards'
 import { buildQuickActionPrompt } from './quickActions'
+import { AttachmentStore } from './attachments'
+import { captureScreen } from './screenshot'
 import { Reminders, formatWhen, type Reminder } from './reminders'
 import { CharacterWindow, openSettingsWindow } from './windows'
 
@@ -67,6 +73,7 @@ async function main(): Promise<void> {
   let shellPath = process.env.PATH ?? ''
   const desktop = new DesktopTools(desktopDeps())
   const reminders = new Reminders({ file: join(app.getPath('userData'), 'reminders.json') })
+  const attachments = new AttachmentStore(join(app.getPath('userData'), 'attachments'))
   const mcp = new McpManager(() => shellPath, (name) => desktop.has(name) || reminders.has(name))
   const characterWindow = new CharacterWindow(settings)
 
@@ -106,6 +113,7 @@ async function main(): Promise<void> {
   const orchestrator = new Orchestrator({
     store,
     tools: combineToolHosts([desktop, reminders, mcp]),
+    attachments,
     getSettings: () => settings.get(),
     getProvider,
     getCharacter: (id) => characters.get(id),
@@ -361,10 +369,30 @@ async function main(): Promise<void> {
 
   handle('chat:list', (query?: string) => store.listConversations(query))
   handle('chat:messages', (id: string) => store.getMessages(id))
-  handle('chat:send', async (conversationId: string | null, text: string) => {
-    const { conversationId: id } = await orchestrator.send(conversationId, text)
+  handle('chat:send', async (conversationId: string | null, text: string, images?: unknown) => {
+    const { conversationId: id } = await orchestrator.send(conversationId, text, images)
     return id
   })
+  handle('chat:image', (conversationId: string, id: string, mediaType: string) => {
+    if (!IMAGE_MEDIA_TYPES.includes(mediaType as ImageMediaType)) return null
+    try {
+      const data = attachments.read(conversationId, id, mediaType as ImageMediaType)
+      return data ? `data:${mediaType};base64,${data}` : null
+    } catch {
+      return null
+    }
+  })
+  handle('screen:capture', () =>
+    captureScreen({
+      platform: process.platform,
+      screenAccess: () => (process.platform === 'darwin' ? systemPreferences.getMediaAccessStatus('screen') : 'granted'),
+      openPrivacySettings: () =>
+        void shell.openExternal('x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture'),
+      display: () => screen.getDisplayNearestPoint(screen.getCursorScreenPoint()),
+      getSources: (opts) => desktopCapturer.getSources(opts),
+      setInvisible: (v) => characterWindow.setInvisible(v)
+    })
+  )
   handle('chat:stop', (id: string) => orchestrator.stop(id))
   handle('chat:retry', async (id: string) => {
     await orchestrator.retry(id)
@@ -383,6 +411,7 @@ async function main(): Promise<void> {
   handle('chat:delete', (id: string) => {
     orchestrator.stop(id)
     store.deleteConversation(id)
+    attachments.deleteConversation(id)
   })
   handle('chat:export', async (id: string) => {
     const c = store.getConversation(id)

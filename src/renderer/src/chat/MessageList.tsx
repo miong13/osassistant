@@ -107,7 +107,18 @@ export function MessageList(props: {
                     <IconEdit />
                   </button>
                 )}
-                <div className="msg user">{question}</div>
+                <div className="user-col">
+                  {turn.user.parts.some((p) => p.type === 'image') && (
+                    <div className="msg-images">
+                      {turn.user.parts.map((p) =>
+                        p.type === 'image' ? (
+                          <StoredImage key={p.id} conversationId={turn.user!.conversationId} id={p.id} mediaType={p.mediaType} />
+                        ) : null
+                      )}
+                    </div>
+                  )}
+                  {question && <div className="msg user">{question}</div>}
+                </div>
               </div>
             )}
             {turn.replies.map(renderReply)}
@@ -250,4 +261,19 @@ function CopyButton({ text }: { text: string }) {
       <IconCopy /> {copied ? 'Copied' : 'Copy'}
     </button>
   )
+}
+
+/** An attached image, loaded from the app's data folder when shown. */
+function StoredImage(props: { conversationId: string; id: string; mediaType: string }) {
+  const [url, setUrl] = useState<string | null | undefined>(undefined)
+  useEffect(() => {
+    let cancelled = false
+    void window.api.getImage(props.conversationId, props.id, props.mediaType).then((u) => !cancelled && setUrl(u))
+    return () => {
+      cancelled = true
+    }
+  }, [props.conversationId, props.id, props.mediaType])
+  if (url === undefined) return null
+  if (url === null) return <span className="missing">[image no longer available]</span>
+  return <img src={url} alt="Attached image" />
 }
