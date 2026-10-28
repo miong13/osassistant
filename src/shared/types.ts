@@ -53,6 +53,8 @@ export interface Settings {
   hotkey: string
   showDockIcon: boolean
   launchAtLogin: boolean
+  /** Opens quick actions (explain, translate…) for copied text. Empty = off. */
+  selectionHotkey: string
   /** Check GitHub for new versions in the background. */
   autoUpdate: boolean
   characterId: string

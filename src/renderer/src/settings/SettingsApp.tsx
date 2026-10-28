@@ -66,6 +66,7 @@ const EFFORTS: { id: Effort; label: string }[] = [
 
 function GeneralTab({ settings, update }: TabProps) {
   const [hotkeyStatus, setHotkeyStatus] = useState<{ ok: boolean; message: string } | null>(null)
+  const [selectionStatus, setSelectionStatus] = useState<{ ok: boolean; message: string } | null>(null)
   return (
     <>
       <h1>General</h1>
@@ -82,11 +83,44 @@ function GeneralTab({ settings, update }: TabProps) {
           <HotkeyRecorder
             value={settings.hotkey}
             onChange={async (accelerator) => {
-              const check = await window.api.checkHotkey(accelerator)
+              const check = await window.api.checkHotkey(accelerator, 'chat')
               setHotkeyStatus(check)
               if (check.ok) await update({ hotkey: accelerator })
             }}
           />
+        </Row>
+        <Row
+          label="Copied-text hotkey"
+          hint={
+            <>
+              Copy some text in any app, then press this to explain, summarize, translate or rewrite it.{' '}
+              <StatusText status={selectionStatus} />
+            </>
+          }
+        >
+          <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+            {settings.selectionHotkey ? (
+              <HotkeyRecorder
+                value={settings.selectionHotkey}
+                onChange={async (accelerator) => {
+                  const check = await window.api.checkHotkey(accelerator, 'selection')
+                  setSelectionStatus(check)
+                  if (check.ok) await update({ selectionHotkey: accelerator })
+                }}
+              />
+            ) : (
+              <span className="muted">Off</span>
+            )}
+            <button
+              className="btn small"
+              onClick={() => {
+                setSelectionStatus(null)
+                void update({ selectionHotkey: settings.selectionHotkey ? '' : 'Alt+Shift+Space' })
+              }}
+            >
+              {settings.selectionHotkey ? 'Turn off' : 'Turn on'}
+            </button>
+          </div>
         </Row>
         <Row label="Launch at login" hint="Start the assistant when you log in (packaged app only).">
           <Switch checked={settings.launchAtLogin} onChange={(v) => void update({ launchAtLogin: v })} />

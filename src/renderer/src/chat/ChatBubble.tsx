@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
+import type { QuickActionsRequest } from '../../../shared/api'
+import { QUICK_ACTIONS } from '../../../shared/quickActions'
 import type { CharacterInfo, ModelInfo, ProviderView, Rect, Settings } from '../../../shared/types'
 import { IconBack, IconClose, IconGear, IconHistory, IconPlus, IconSend, IconStop } from '../lib/icons'
 import { BubbleFrame } from './BubbleFrame'
@@ -14,6 +16,8 @@ export function ChatBubble(props: {
   settings: Settings
   chat: ReturnType<typeof useChat>
   focusToken: number
+  quickActions: QuickActionsRequest | null
+  onCloseQuickActions(): void
   onTyping(): void
   onClose(): void
 }) {
@@ -36,8 +40,25 @@ export function ChatBubble(props: {
     el.style.overflowY = el.scrollHeight > 120 ? 'auto' : 'hidden'
   }, [draft])
 
+  const quick = props.quickActions
+  /** Start a new chat with an action on the copied text. */
+  const runQuickAction = async (id: string, extra?: string) => {
+    if (chat.state.busy) return
+    const prompt = await window.api.quickActionPrompt(id, extra)
+    if (!prompt) return
+    props.onCloseQuickActions()
+    await chat.open(null)
+    await chat.send(prompt)
+  }
+
   const submit = () => {
+    if (quick?.length && draft.trim()) {
+      void runQuickAction('ask', draft.trim())
+      setDraft('')
+      return
+    }
     if (!draft.trim() || chat.state.busy) return
+    if (quick) props.onCloseQuickActions()
     void (editing ? chat.editLast(draft) : chat.send(draft))
     setDraft('')
     setEditing(false)
@@ -98,6 +119,15 @@ export function ChatBubble(props: {
         />
       ) : (
         <>
+          {quick ? (
+            <QuickActionsPanel
+              request={quick}
+              hotkey={props.settings.selectionHotkey}
+              busy={chat.state.busy}
+              onAction={(id) => void runQuickAction(id, id === 'translate' ? userLanguage() : undefined)}
+              onClose={props.onCloseQuickActions}
+            />
+          ) : (
           <MessageList
             state={chat.state}
             character={character}
@@ -111,6 +141,7 @@ export function ChatBubble(props: {
               input.current?.focus()
             }}
           />
+          )}
           {editing && (
             <div className="edit-banner">
               <span>Editing your last message. Sending replaces it and its answer.</span>
@@ -124,7 +155,7 @@ export function ChatBubble(props: {
               ref={input}
               rows={1}
               value={draft}
-              placeholder={`Ask ${character.name} anything…`}
+              placeholder={quick?.length ? 'Ask something about the copied text…' : `Ask ${character.name} anything…`}
               onChange={(e) => {
                 setDraft(e.target.value)
                 props.onTyping()
@@ -134,7 +165,8 @@ export function ChatBubble(props: {
                   e.preventDefault()
                   submit()
                 } else if (e.key === 'Escape') {
-                  if (editing) cancelEdit()
+                  if (quick) props.onCloseQuickActions()
+                  else if (editing) cancelEdit()
                   else props.onClose()
                 }
               }}
@@ -205,4 +237,67 @@ function ModelPicker({ settings }: { settings: Settings }) {
       ))}
     </select>
   )
+}
+
+function QuickActionsPanel(props: {
+  request: QuickActionsRequest
+  hotkey: string
+  busy: boolean
+  onAction(id: string): void
+  onClose(): void
+}) {
+  const { request } = props
+  const keys = props.hotkey.replace('CommandOrControl', 'Ctrl').replace(/\+/g, ' + ')
+  if (!request.length)
+    return (
+      <div className="quick-actions">
+        <div className="quick-head">
+          <strong>Nothing copied yet</strong>
+          <button className="icon-btn" title="Close" onClick={props.onClose}>
+            <IconClose />
+          </button>
+        </div>
+        <p className="muted">
+          Select some text in any app and copy it ({window.api.platform === 'darwin' ? '⌘C' : 'Ctrl+C'}), then press{' '}
+          <span className="kbd-inline">{keys}</span> again.
+        </p>
+      </div>
+    )
+  return (
+    <div className="quick-actions">
+      <div className="quick-head">
+        <strong>Copied text</strong>
+        <span className="muted">{request.length.toLocaleString()} characters</span>
+        <button className="icon-btn" title="Back to chat (Esc)" onClick={props.onClose}>
+          <IconClose />
+        </button>
+      </div>
+      <div className="quick-preview">
+        {request.preview}
+        {request.length > request.preview.length && '…'}
+      </div>
+      {request.truncated && <p className="muted">Only the first 20,000 characters will be used.</p>}
+      {request.looksSecret && (
+        <p className="warn-text">This looks like it may contain a password or key. It will be sent to your AI provider.</p>
+      )}
+      <div className="suggestions">
+        {QUICK_ACTIONS.map((a) => (
+          <button key={a.id} disabled={props.busy} onClick={() => props.onAction(a.id)}>
+            {a.id === 'translate' ? `Translate to ${userLanguage()}` : a.label}
+          </button>
+        ))}
+      </div>
+      <p className="muted quick-hint">Or type a question about it below.</p>
+    </div>
+  )
+}
+
+/** The user's language name in English, e.g. "Spanish", for "Translate to …". */
+function userLanguage(): string {
+  try {
+    const code = navigator.language.split('-')[0]
+    return new Intl.DisplayNames(['en'], { type: 'language' }).of(code) ?? 'English'
+  } catch {
+    return 'English'
+  }
 }

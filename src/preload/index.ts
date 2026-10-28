@@ -64,7 +64,9 @@ const api: Api = {
   openSettings: (tab) => ipcRenderer.send('settings:open', tab),
   onSettingsTab: (cb) => on('settings-tab', cb),
 
-  checkHotkey: (accelerator) => invoke('hotkey:check', accelerator)
+  checkHotkey: (accelerator, kind) => invoke('hotkey:check', accelerator, kind),
+  onQuickActions: (cb) => on('quick-actions', cb),
+  quickActionPrompt: (id, extra) => invoke('quick-actions:prompt', id, extra)
 }
 
 contextBridge.exposeInMainWorld('api', api)

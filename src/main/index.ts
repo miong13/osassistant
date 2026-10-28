@@ -35,6 +35,8 @@ import { SqliteChatStore } from './store/sqliteStore'
 import { TipEngine } from './tips/engine'
 import { AppTray } from './tray'
 import { RELEASES_URL, Updater } from './updater'
+import { looksLikeSecret, stripHiddenChars } from './guards'
+import { buildQuickActionPrompt } from './quickActions'
 import { Reminders, formatWhen, type Reminder } from './reminders'
 import { CharacterWindow, openSettingsWindow } from './windows'
 
@@ -114,6 +116,7 @@ async function main(): Promise<void> {
   })
 
   // ---------- bubble / tips ----------
+  const MAX_COPIED_CHARS = 20_000
   let tipTimer: NodeJS.Timeout | undefined
   const openBubble = (focus: boolean, prompt?: string) => {
     clearTimeout(tipTimer)
@@ -153,6 +156,33 @@ async function main(): Promise<void> {
   const toggleFromHotkey = () => {
     if (characterWindow.visible && characterWindow.mode === 'open') closeBubble()
     else openBubble(true)
+  }
+  // Selection hotkey: act on text the user just copied.
+  let registeredSelectionHotkey = ''
+  let copiedText = ''
+  const openQuickActions = () => {
+    const text = stripHiddenChars(clipboard.readText()).trim()
+    copiedText = text.slice(0, MAX_COPIED_CHARS)
+    openBubble(true)
+    characterWindow.send('quick-actions', {
+      preview: text.slice(0, 400),
+      length: text.length,
+      truncated: text.length > MAX_COPIED_CHARS,
+      looksSecret: text ? looksLikeSecret(text) : false
+    })
+  }
+  const registerSelectionHotkey = (accelerator: string): boolean => {
+    if (registeredSelectionHotkey) globalShortcut.unregister(registeredSelectionHotkey)
+    registeredSelectionHotkey = ''
+    try {
+      if (accelerator && accelerator !== registeredHotkey && globalShortcut.register(accelerator, openQuickActions)) {
+        registeredSelectionHotkey = accelerator
+        return true
+      }
+    } catch {
+      /* invalid accelerator */
+    }
+    return !accelerator
   }
   const registerHotkey = (accelerator: string): boolean => {
     if (registeredHotkey) globalShortcut.unregister(registeredHotkey)
@@ -251,6 +281,7 @@ async function main(): Promise<void> {
   }
   settings.on('change', (s: Settings) => {
     if (s.hotkey !== previous.hotkey) registerHotkey(s.hotkey)
+    if (s.selectionHotkey !== previous.selectionHotkey) registerSelectionHotkey(s.selectionHotkey)
     if (JSON.stringify(s.mcpServers) !== JSON.stringify(previous.mcpServers)) void mcp.sync(s.mcpServers)
     if (s.characterId !== previous.characterId) applyCharacterSize()
     if (s.showDockIcon !== previous.showDockIcon || s.launchAtLogin !== previous.launchAtLogin)
@@ -402,8 +433,12 @@ async function main(): Promise<void> {
 
   handle('window:get-layout', () => characterWindow.layout)
   handle('window:set-bubble', (mode: 'open' | 'closed') => (mode === 'open' ? openBubble(true) : closeBubble()))
-  handle('hotkey:check', (accelerator: string) => {
-    if (accelerator === registeredHotkey) return { ok: true, message: 'Current hotkey.' }
+  handle('quick-actions:prompt', (id: string, extra?: string) => buildQuickActionPrompt(id, extra, copiedText))
+  handle('hotkey:check', (accelerator: string, kind: 'chat' | 'selection' = 'chat') => {
+    const mine = kind === 'chat' ? registeredHotkey : registeredSelectionHotkey
+    const other = kind === 'chat' ? registeredSelectionHotkey : registeredHotkey
+    if (accelerator === mine) return { ok: true, message: 'Current hotkey.' }
+    if (accelerator === other) return { ok: false, message: 'Already used by the other hotkey.' }
     try {
       const ok = globalShortcut.register(accelerator, () => {})
       if (ok) globalShortcut.unregister(accelerator)
@@ -459,6 +494,9 @@ async function main(): Promise<void> {
   applyCharacterSize()
   if (!registerHotkey(settings.get().hotkey)) {
     console.warn(`Could not register hotkey ${settings.get().hotkey}`)
+  }
+  if (!registerSelectionHotkey(settings.get().selectionHotkey)) {
+    console.warn(`Could not register selection hotkey ${settings.get().selectionHotkey}`)
   }
   tray.create()
   refreshTray()

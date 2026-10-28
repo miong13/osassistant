@@ -5,6 +5,7 @@ import type { Settings } from '../../shared/types'
 
 export const DEFAULT_SETTINGS: Settings = {
   hotkey: 'Alt+Space',
+  selectionHotkey: 'Alt+Shift+Space',
   showDockIcon: false,
   launchAtLogin: false,
   autoUpdate: true,

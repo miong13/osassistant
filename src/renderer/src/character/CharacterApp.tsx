@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import type { QuickActionsRequest } from '../../../shared/api'
 import type { CharacterInfo, Layout, Settings, Tip } from '../../../shared/types'
 import { ChatBubble } from '../chat/ChatBubble'
 import { TipBubble } from '../chat/TipBubble'
@@ -16,6 +17,7 @@ export function CharacterApp() {
   const [lastTypedAt, setLastTypedAt] = useState(0)
   const [lastInteractionAt, setLastInteractionAt] = useState(Date.now())
   const [focusToken, setFocusToken] = useState(0)
+  const [quickActions, setQuickActions] = useState<QuickActionsRequest | null>(null)
   const chat = useChat()
   const pendingPrompt = useRef<string | null>(null)
 
@@ -33,6 +35,7 @@ export function CharacterApp() {
       }),
       window.api.onTip(setTip),
       window.api.onNewChat(() => void chat.open(null)),
+      window.api.onQuickActions(setQuickActions),
       window.api.onOpenBubble(({ focus, prompt }) => {
         setLastInteractionAt(Date.now())
         if (focus) setFocusToken((n) => n + 1)
@@ -42,6 +45,11 @@ export function CharacterApp() {
     return () => offs.forEach((off) => off())
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  // Quick actions belong to one opening of the bubble.
+  useEffect(() => {
+    if (layout?.mode !== 'open') setQuickActions(null)
+  }, [layout?.mode])
 
   // A tip the user accepted starts a fresh chat with its prompt.
   useEffect(() => {
@@ -86,6 +94,8 @@ export function CharacterApp() {
           settings={settings}
           chat={chat}
           focusToken={focusToken}
+          quickActions={quickActions}
+          onCloseQuickActions={() => setQuickActions(null)}
           onTyping={() => {
             setLastTypedAt(Date.now())
             setLastInteractionAt(Date.now())

@@ -85,5 +85,17 @@ export interface Api {
   onUpdateStatus(cb: (s: UpdateStatus) => void): () => void
 
   // misc
-  checkHotkey(accelerator: string): Promise<{ ok: boolean; message: string }>
+  checkHotkey(accelerator: string, kind?: 'chat' | 'selection'): Promise<{ ok: boolean; message: string }>
+  /** The selection hotkey was pressed: show actions for the copied text. */
+  onQuickActions(cb: (q: QuickActionsRequest) => void): () => void
+  /** Chat prompt for an action on the copied text, or null if there's nothing to act on. */
+  quickActionPrompt(id: string, extra?: string): Promise<string | null>
+}
+
+export interface QuickActionsRequest {
+  /** Start of the copied text, for display. Empty when nothing was copied. */
+  preview: string
+  length: number
+  truncated: boolean
+  looksSecret: boolean
 }
