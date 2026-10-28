@@ -14,10 +14,10 @@ export function TipBubble(props: {
       <div className="tip-text">{props.tip.text}</div>
       <div className="tip-actions">
         <button className="btn small" onClick={props.onDismiss}>
-          {props.tip.prompt ? 'No thanks' : 'Got it'}
+          {props.tip.dismissLabel ?? (props.tip.prompt ? 'No thanks' : 'Got it')}
         </button>
         <button className="btn small primary" onClick={props.onAccept}>
-          {props.tip.prompt ? 'Yes, please' : 'Open chat'}
+          {props.tip.acceptLabel ?? (props.tip.prompt ? 'Yes, please' : 'Open chat')}
         </button>
       </div>
     </BubbleFrame>

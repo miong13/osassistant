@@ -53,6 +53,12 @@ const api: Api = {
   onOpenBubble: (cb) => on('open-bubble', cb),
   onNewChat: (cb) => on('new-chat', () => cb()),
   onTip: (cb) => on('tip', cb),
+
+  getUpdateStatus: () => invoke('updates:status'),
+  checkForUpdates: () => invoke('updates:check'),
+  installUpdate: () => ipcRenderer.send('updates:install'),
+  openReleasesPage: () => ipcRenderer.send('updates:open-page'),
+  onUpdateStatus: (cb) => on('update-status', cb),
   dismissTip: () => ipcRenderer.send('tip:dismiss'),
   acceptTip: (tip) => ipcRenderer.send('tip:accept', tip),
   openSettings: (tab) => ipcRenderer.send('settings:open', tab),

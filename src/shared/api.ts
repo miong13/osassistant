@@ -12,7 +12,8 @@ import type {
   ProviderConfig,
   ProviderView,
   Settings,
-  Tip
+  Tip,
+  UpdateStatus
 } from './types'
 
 export type SettingsPatch = Partial<Omit<Settings, 'providers'>>
@@ -74,6 +75,14 @@ export interface Api {
   acceptTip(tip: Tip): void
   openSettings(tab?: string): void
   onSettingsTab(cb: (tab: string) => void): () => void
+
+  // updates
+  getUpdateStatus(): Promise<UpdateStatus>
+  checkForUpdates(): Promise<UpdateStatus>
+  /** Restart into a downloaded update. */
+  installUpdate(): void
+  openReleasesPage(): void
+  onUpdateStatus(cb: (s: UpdateStatus) => void): () => void
 
   // misc
   checkHotkey(accelerator: string): Promise<{ ok: boolean; message: string }>

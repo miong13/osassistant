@@ -18,7 +18,7 @@ import { homedir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import type { SettingsPatch } from '../shared/api'
-import type { ApprovalDecision, ChatEvent, ProviderConfig, ProviderView, Settings, Tip } from '../shared/types'
+import type { ApprovalDecision, ChatEvent, ProviderConfig, ProviderView, Settings, Tip, UpdateStatus } from '../shared/types'
 import { ASSET_SCHEME, CharacterLibrary } from './characters/loader'
 import { Orchestrator } from './chat/orchestrator'
 import { toMarkdown } from './chat/exportMarkdown'
@@ -33,6 +33,7 @@ import { SettingsStore } from './store/settings'
 import { SqliteChatStore } from './store/sqliteStore'
 import { TipEngine } from './tips/engine'
 import { AppTray } from './tray'
+import { RELEASES_URL, Updater } from './updater'
 import { CharacterWindow, openSettingsWindow } from './windows'
 
 protocol.registerSchemesAsPrivileged([
@@ -178,10 +179,45 @@ async function main(): Promise<void> {
     setCharacter: (id) => settings.update({ characterId: id }),
     setDoNotDisturb: (on) => settings.update({ tips: { ...settings.get().tips, doNotDisturb: on } }),
     openSettings: () => openSettingsWindow(),
+    checkForUpdates: () => void updater.check(),
+    installUpdate: () => installUpdate(),
+    openReleasesPage: () => void shell.openExternal(RELEASES_URL),
     quit: () => app.quit()
   })
   const refreshTray = () =>
-    tray.update(settings.get(), characters.list().characters, characterWindow.visible, registeredHotkey)
+    tray.update(settings.get(), characters.list().characters, characterWindow.visible, registeredHotkey, updater.current)
+
+  // ---------- quitting ----------
+  let quitting = false
+  const shutdown = async () => {
+    tips.stop()
+    updater.stop()
+    orchestrator.stopAll()
+    globalShortcut.unregisterAll()
+    await mcp.closeAll().catch(() => undefined)
+    store.close()
+  }
+  const installUpdate = () => {
+    if (quitting || updater.current.state !== 'ready') return
+    quitting = true
+    void shutdown().finally(() => updater.install())
+  }
+
+  // ---------- updates ----------
+  const updater = new Updater(() => settings.get().autoUpdate)
+  updater.on('status', (s: UpdateStatus) => {
+    broadcast('update-status', s)
+    refreshTray()
+  })
+  updater.on('needs-user', (s: UpdateStatus) => {
+    // The character mentions it, unless it's busy; the tray and About page always show it too.
+    if (!characterWindow.visible || characterWindow.mode !== 'closed' || orchestrator.busy) return
+    showTip(
+      s.state === 'ready'
+        ? { id: 'update', text: `Version ${s.version} is ready! Restart now to update?`, acceptLabel: 'Restart', dismissLabel: 'Later' }
+        : { id: 'update', text: `Version ${s.version} is out! Want to download it?`, acceptLabel: 'Download', dismissLabel: 'Later' }
+    )
+  })
 
   // ---------- react to settings changes ----------
   let previous: Settings = settings.get()
@@ -364,8 +400,20 @@ async function main(): Promise<void> {
   listen('window:drag-by', (_e, dx: number, dy: number) => characterWindow.dragBy(dx, dy))
   listen('window:drag-end', () => characterWindow.dragEnd())
   listen('tip:dismiss', () => dismissTip())
-  listen('tip:accept', (_e, tip: Tip) => openBubble(true, tip.prompt))
+  listen('tip:accept', (_e, tip: Tip) => {
+    if (tip.id === 'update') {
+      dismissTip()
+      if (updater.current.state === 'ready') installUpdate()
+      else void shell.openExternal(RELEASES_URL)
+      return
+    }
+    openBubble(true, tip.prompt)
+  })
   listen('settings:open', (_e, tab?: string) => openSettingsWindow(tab))
+  handle('updates:status', () => updater.current)
+  handle('updates:check', () => updater.check())
+  listen('updates:install', () => installUpdate())
+  listen('updates:open-page', () => void shell.openExternal(RELEASES_URL))
 
   // ---------- start ----------
   Menu.setApplicationMenu(
@@ -384,6 +432,7 @@ async function main(): Promise<void> {
   tray.create()
   refreshTray()
   tips.start()
+  void updater.start()
 
   shellPath = await loadShellPath()
   void mcp.sync(settings.get().mcpServers)
@@ -392,17 +441,12 @@ async function main(): Promise<void> {
   app.on('window-all-closed', () => {
     /* keep running in the tray */
   })
-  let quitting = false
   app.on('before-quit', (e) => {
     if (quitting) return
     quitting = true
     e.preventDefault()
-    tips.stop()
-    orchestrator.stopAll()
-    globalShortcut.unregisterAll()
-    void mcp.closeAll().finally(() => {
-      store.close()
-      app.exit(0)
-    })
+    // Quit for real once cleaned up (quitting is set, so this handler lets it through).
+    // A normal quit, unlike app.exit(), lets a downloaded update install.
+    void shutdown().finally(() => app.quit())
   })
 }

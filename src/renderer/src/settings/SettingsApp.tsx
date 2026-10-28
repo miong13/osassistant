@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { SettingsPatch } from '../../../shared/api'
-import type { Effort, Settings } from '../../../shared/types'
+import type { Effort, Settings, UpdateStatus } from '../../../shared/types'
 import { CharactersTab } from './CharactersTab'
 import { Row, StatusText, Switch } from './controls'
 import { HotkeyRecorder } from './HotkeyRecorder'
@@ -90,6 +90,9 @@ function GeneralTab({ settings, update }: TabProps) {
         </Row>
         <Row label="Launch at login" hint="Start the assistant when you log in (packaged app only).">
           <Switch checked={settings.launchAtLogin} onChange={(v) => void update({ launchAtLogin: v })} />
+        </Row>
+        <Row label="Check for updates automatically" hint="Looks for new versions on GitHub every few hours.">
+          <Switch checked={settings.autoUpdate} onChange={(v) => void update({ autoUpdate: v })} />
         </Row>
         {window.api.platform === 'darwin' && (
           <Row label="Show in Dock" hint="Off keeps the assistant in the menu bar only.">
@@ -191,6 +194,64 @@ function AboutTab() {
           <span className="muted">Encrypted with your system keychain.</span>
         </Row>
       </div>
+      <UpdatesCard />
     </>
   )
+}
+
+function UpdatesCard() {
+  const [status, setStatus] = useState<UpdateStatus>({ state: 'idle' })
+  useEffect(() => {
+    void window.api.getUpdateStatus().then(setStatus)
+    return window.api.onUpdateStatus(setStatus)
+  }, [])
+
+  const text = describeUpdate(status)
+  const busy = status.state === 'checking' || status.state === 'downloading'
+  return (
+    <div className="card">
+      <Row label="Updates" hint={text}>
+        {status.state === 'ready' ? (
+          <button className="btn primary" onClick={() => window.api.installUpdate()}>
+            Restart to update
+          </button>
+        ) : (status.state === 'available' && status.manual) || status.state === 'error' ? (
+          <button className="btn primary" onClick={() => window.api.openReleasesPage()}>
+            Open download page
+          </button>
+        ) : (
+          <button
+            className="btn"
+            disabled={busy || status.state === 'unsupported'}
+            onClick={() => void window.api.checkForUpdates().then(setStatus)}
+          >
+            {busy ? 'Checking…' : 'Check now'}
+          </button>
+        )}
+      </Row>
+    </div>
+  )
+}
+
+function describeUpdate(s: UpdateStatus): string {
+  switch (s.state) {
+    case 'unsupported':
+      return s.message ?? 'Updates are not available in this build.'
+    case 'checking':
+      return 'Checking for updates…'
+    case 'none':
+      return "You're on the latest version."
+    case 'available':
+      return s.manual
+        ? `Version ${s.version} is available. Download it from the releases page and replace the app.`
+        : `Version ${s.version} is available.`
+    case 'downloading':
+      return `Downloading version ${s.version ?? ''}… ${s.percent ?? 0}%`
+    case 'ready':
+      return `Version ${s.version} is ready. Restart to finish updating.`
+    case 'error':
+      return s.message ?? 'Checking for updates failed.'
+    default:
+      return 'New versions are checked for automatically.'
+  }
 }

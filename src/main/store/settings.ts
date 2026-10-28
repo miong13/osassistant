@@ -7,6 +7,7 @@ export const DEFAULT_SETTINGS: Settings = {
   hotkey: 'Alt+Space',
   showDockIcon: false,
   launchAtLogin: false,
+  autoUpdate: true,
   characterId: 'sticky',
   activeProviderId: 'anthropic',
   activeModel: 'claude-opus-5-5',

@@ -53,6 +53,8 @@ export interface Settings {
   hotkey: string
   showDockIcon: boolean
   launchAtLogin: boolean
+  /** Check GitHub for new versions in the background. */
+  autoUpdate: boolean
   characterId: string
   activeProviderId: string
   activeModel: string
@@ -183,6 +185,19 @@ export interface Tip {
   text: string
   /** If set, accepting the tip sends this message to the chat. */
   prompt?: string
+  /** Button labels, for tips that do something other than open the chat. */
+  acceptLabel?: string
+  dismissLabel?: string
+}
+
+export interface UpdateStatus {
+  state: 'idle' | 'unsupported' | 'checking' | 'none' | 'available' | 'downloading' | 'ready' | 'error'
+  version?: string
+  /** Download progress, 0-100. */
+  percent?: number
+  /** True when this build can't install updates itself (unsigned Mac app): download from the releases page. */
+  manual?: boolean
+  message?: string
 }
 
 // ---------- Window layout ----------

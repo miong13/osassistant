@@ -1,7 +1,7 @@
 import { Menu, Tray, app, nativeImage } from 'electron'
 import { existsSync } from 'node:fs'
 import { join } from 'node:path'
-import type { CharacterInfo, Settings } from '../shared/types'
+import type { CharacterInfo, Settings, UpdateStatus } from '../shared/types'
 
 export interface TrayActions {
   toggleCharacter(): void
@@ -10,6 +10,9 @@ export interface TrayActions {
   setCharacter(id: string): void
   setDoNotDisturb(on: boolean): void
   openSettings(): void
+  checkForUpdates(): void
+  installUpdate(): void
+  openReleasesPage(): void
   quit(): void
 }
 
@@ -35,7 +38,13 @@ export class AppTray {
     })
   }
 
-  update(settings: Settings, characters: CharacterInfo[], characterVisible: boolean, hotkey: string): void {
+  update(
+    settings: Settings,
+    characters: CharacterInfo[],
+    characterVisible: boolean,
+    hotkey: string,
+    update: UpdateStatus
+  ): void {
     if (!this.tray) return
     const menu = Menu.buildFromTemplate([
       { label: 'Open Chat', accelerator: hotkey, click: () => this.actions.openChat() },
@@ -61,9 +70,19 @@ export class AppTray {
         click: (item) => this.actions.setDoNotDisturb(item.checked)
       },
       { type: 'separator' },
+      this.updateItem(update),
       { label: 'Settings…', accelerator: 'CmdOrCtrl+,', click: () => this.actions.openSettings() },
       { label: `Quit ${app.getName()}`, accelerator: 'CmdOrCtrl+Q', click: () => this.actions.quit() }
     ])
     this.tray.setContextMenu(menu)
+  }
+
+  private updateItem(u: UpdateStatus): Electron.MenuItemConstructorOptions {
+    if (u.state === 'ready') return { label: `Restart to Update (${u.version})`, click: () => this.actions.installUpdate() }
+    if (u.state === 'available' && u.manual)
+      return { label: `Download Version ${u.version}…`, click: () => this.actions.openReleasesPage() }
+    if (u.state === 'downloading') return { label: `Downloading Update… ${u.percent ?? 0}%`, enabled: false }
+    if (u.state === 'checking') return { label: 'Checking for Updates…', enabled: false }
+    return { label: 'Check for Updates…', enabled: u.state !== 'unsupported', click: () => this.actions.checkForUpdates() }
   }
 }
