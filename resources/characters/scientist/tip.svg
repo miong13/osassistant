@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="140" height="140" viewBox="0 0 140 140">
+<style>
+.t{transform-box:fill-box;transform-origin:center}
+.tb{transform-box:fill-box;transform-origin:50% 100%}
+.blink{animation:blink 4s infinite}
+@keyframes blink{0%,91%,100%{transform:scaleY(1)}94%{transform:scaleY(.1)}97%{transform:scaleY(1)}}
+.bub{transform-box:fill-box;transform-origin:center;animation:rise 1.8s ease-in infinite}
+.b2{animation-delay:-.6s}.b3{animation-delay:-1.2s}
+@keyframes rise{0%{transform:translateY(0) scale(.6);opacity:0}20%{opacity:1}100%{transform:translateY(-13px) scale(1.1);opacity:0}}
+.char{animation:bob 3.2s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+.shadow{animation:sh 3.2s ease-in-out infinite}
+@keyframes sh{0%,100%{transform:scaleX(1);opacity:.2}50%{transform:scaleX(.9);opacity:.14}}
+.bulb{animation:glow 1.2s ease-in-out infinite}
+@keyframes glow{0%,100%{fill:#FFE066}50%{fill:#FFF7C9}}
+.rays{animation:ray 1.2s ease-in-out infinite}
+@keyframes ray{0%,100%{opacity:.35}50%{opacity:1}}
+.bob2{animation:bob2 1.2s ease-in-out infinite}
+@keyframes bob2{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+</style>
+<ellipse class="t shadow" cx="70" cy="128" rx="34" ry="5" fill="#000" opacity=".2"/>
+<g class="tb char">
+  <circle cx="30" cy="72" r="11" fill="#F1F2F8" stroke="#2A2F45" stroke-width="3"/>
+  <circle cx="33" cy="56" r="12" fill="#F1F2F8" stroke="#2A2F45" stroke-width="3"/>
+  <circle cx="46" cy="44" r="12" fill="#F1F2F8" stroke="#2A2F45" stroke-width="3"/>
+  <circle cx="94" cy="44" r="12" fill="#F1F2F8" stroke="#2A2F45" stroke-width="3"/>
+  <circle cx="107" cy="56" r="12" fill="#F1F2F8" stroke="#2A2F45" stroke-width="3"/>
+  <circle cx="110" cy="72" r="11" fill="#F1F2F8" stroke="#2A2F45" stroke-width="3"/>
+  <circle cx="70" cy="82" r="40" fill="#FFE0C7" stroke="#2A2F45" stroke-width="3"/>
+  <path d="M52 46Q58 43 64 43" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".6"/>
+  <path d="M34.3 100Q70 108 105.7 100A40 40 0 0 1 34.3 100Z" fill="#FFFFFF" stroke="#2A2F45" stroke-width="2.5" stroke-linejoin="round"/>
+  <path d="M58 103L70 116L82 103Q70 106 58 103Z" fill="#BFD7FF" stroke="#2A2F45" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M70 105L67.5 108.5L70 117L72.5 108.5Z" fill="#E5484D" stroke="#2A2F45" stroke-width="1.5" stroke-linejoin="round"/>
+  <path d="M54 102.5L66 119M86 102.5L74 119" fill="none" stroke="#2A2F45" stroke-width="2" stroke-linecap="round"/>
+  <path d="M90 104V109" stroke="#3B82F6" stroke-width="2.5" stroke-linecap="round"/>
+  <rect x="86" y="108" width="10" height="7" rx="1.5" fill="#FFFFFF" stroke="#2A2F45" stroke-width="2"/>
+  <ellipse cx="45" cy="88" rx="4.5" ry="2.8" fill="#FF8FA8" opacity=".55"/>
+  <ellipse cx="95" cy="88" rx="4.5" ry="2.8" fill="#FF8FA8" opacity=".55"/>
+  <path d="M46 50H94A40 40 0 0 1 102 58H38A40 40 0 0 1 46 50Z" fill="#6B4F3A" stroke="#2A2F45" stroke-width="2.5" stroke-linejoin="round"/>
+  <circle cx="59" cy="54" r="8.5" fill="#8FE3F0" stroke="#2A2F45" stroke-width="3"/>
+  <circle cx="81" cy="54" r="8.5" fill="#8FE3F0" stroke="#2A2F45" stroke-width="3"/>
+  <path d="M55 51Q57 49 60 49M77 51Q79 49 82 49" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+  <path d="M67.5 54H72.5" stroke="#2A2F45" stroke-width="3" stroke-linecap="round"/>
+  
+  <path d="M51 66Q57 62 63 66M77 66Q83 62 89 66" fill="none" stroke="#2A2F45" stroke-width="2.6" stroke-linecap="round"/>
+  <g><path d="M52 78Q57 70 62 78" fill="none" stroke="#2A2F45" stroke-width="3.2" stroke-linecap="round"/>
+    <path d="M78 78Q83 70 88 78" fill="none" stroke="#2A2F45" stroke-width="3.2" stroke-linecap="round"/></g>
+  <path d="M62 87Q70 89 78 87Q77 97 70 97Q63 97 62 87Z" fill="#7A2E3B" stroke="#2A2F45" stroke-width="2.5" stroke-linejoin="round"/>
+  <circle cx="31" cy="108" r="6.5" fill="#FFE0C7" stroke="#2A2F45" stroke-width="3"/>
+  <g>
+    <path d="M105 116L113 103V95H119V103L127 116Z" fill="#fff" fill-opacity=".9"/>
+    <path d="M106.5 114.5L111.4 107H120.6L125.5 114.5Z" fill="#7CF29A"/>
+    <path d="M105 116L113 103V95H119V103L127 116Z" fill="none" stroke="#2A2F45" stroke-width="2.5" stroke-linejoin="round"/>
+    <path d="M111 95H121" stroke="#2A2F45" stroke-width="2.5" stroke-linecap="round"/>
+    <circle class="bub b1" cx="116" cy="91" r="2" fill="#7CF29A" stroke="#2A2F45" stroke-width="1"/>
+    <circle class="bub b2" cx="113.5" cy="91" r="1.5" fill="#7CF29A" stroke="#2A2F45" stroke-width="1"/>
+    <circle class="bub b3" cx="118.5" cy="91" r="1.7" fill="#7CF29A" stroke="#2A2F45" stroke-width="1"/>
+  </g>
+  <circle cx="108" cy="108" r="6.5" fill="#FFE0C7" stroke="#2A2F45" stroke-width="3"/>
+</g>
+<g class="rays" fill="none" stroke="#FFC93C" stroke-width="2.5" stroke-linecap="round">
+  <path d="M20 4V0M9 9L6 6M31 9L34 6M6 19H2M34 19H38"/>
+</g>
+<g class="t bob2">
+  <circle class="bulb" cx="20" cy="18" r="9" fill="#FFE066" stroke="#2A2F45" stroke-width="2.5"/>
+  <path d="M17 20L18.5 15L20 19L21.5 15L23 20" fill="none" stroke="#D99A00" stroke-width="1.5" stroke-linejoin="round"/>
+  <rect x="15.5" y="26" width="9" height="6" rx="1.5" fill="#C3CBD8" stroke="#2A2F45" stroke-width="2"/>
+</g>
+</svg>

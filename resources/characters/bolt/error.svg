@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="140" height="140" viewBox="0 0 140 140">
+<style>
+.t{transform-box:fill-box;transform-origin:center}
+.tb{transform-box:fill-box;transform-origin:50% 100%}
+.char{animation:bob 3.2s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+.shadow{animation:sh 3.2s ease-in-out infinite}
+@keyframes sh{0%,100%{transform:scaleX(1);opacity:.2}50%{transform:scaleX(.9);opacity:.14}}
+.ant{transform-box:fill-box;transform-origin:50% 100%}
+.light{animation:glow 2s ease-in-out infinite}
+@keyframes glow{0%,100%{opacity:1}50%{opacity:.55}}
+.blink{animation:blink 4s infinite}
+@keyframes blink{0%,91%,100%{transform:scaleY(1)}94%{transform:scaleY(.1)}97%{transform:scaleY(1)}}
+.sweat{animation:drip 1.8s ease-in -.7s infinite}
+@keyframes drip{0%{transform:translateY(-3px);opacity:0}20%{opacity:1}75%{opacity:1}100%{transform:translateY(9px);opacity:0}}
+</style>
+<ellipse class="t shadow" cx="70" cy="128" rx="34" ry="5" fill="#000" opacity=".2"/>
+<g class="tb char">
+  <g class="ant">
+    <path d="M70 42V24" stroke="#22314A" stroke-width="3" stroke-linecap="round"/>
+    <circle class="t light" cx="70" cy="19" r="6" fill="#FF6B6B" stroke="#22314A" stroke-width="3"/>
+    <circle cx="68" cy="17" r="1.8" fill="#fff" opacity=".8"/>
+  </g>
+  <path d="M34 98Q23 102 25 110" fill="none" stroke="#22314A" stroke-width="7" stroke-linecap="round"/>
+    <path d="M34 98Q23 102 25 110" fill="none" stroke="#A9C4DE" stroke-width="2.5" stroke-linecap="round"/>
+    <circle cx="25" cy="111" r="5.5" fill="#A9C4DE" stroke="#22314A" stroke-width="3"/>
+  <path d="M106 98Q117 102 115 110" fill="none" stroke="#22314A" stroke-width="7" stroke-linecap="round"/>
+    <path d="M106 98Q117 102 115 110" fill="none" stroke="#A9C4DE" stroke-width="2.5" stroke-linecap="round"/>
+    <circle cx="115" cy="111" r="5.5" fill="#A9C4DE" stroke="#22314A" stroke-width="3"/>
+  <rect x="22" y="72" width="12" height="22" rx="5" fill="#A9C4DE" stroke="#22314A" stroke-width="3"/>
+  <rect x="106" y="72" width="12" height="22" rx="5" fill="#A9C4DE" stroke="#22314A" stroke-width="3"/>
+  <circle cx="70" cy="82" r="40" fill="#D3E5F6" stroke="#22314A" stroke-width="3"/>
+  <path d="M42 70A32 32 0 0 1 64 49" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" opacity=".8"/>
+  <path d="M38 96A36 36 0 0 0 102 96A40 14 0 0 1 38 96Z" fill="#000" opacity=".06"/>
+  <rect x="41" y="62" width="58" height="30" rx="15" fill="#1D2A3E" stroke="#22314A" stroke-width="3"/>
+  <path d="M49 67H62" stroke="#fff" stroke-width="2" stroke-linecap="round" opacity=".25"/>
+  <ellipse cx="46" cy="101" rx="5" ry="3" fill="#FF8FA8" opacity=".55"/>
+  <ellipse cx="94" cy="101" rx="5" ry="3" fill="#FF8FA8" opacity=".55"/>
+  <path d="M50.5 66L62.5 62M89.5 66L77.5 62" fill="none" stroke="#6FF3FF" stroke-width="2.6" stroke-linecap="round"/>
+  <g class="t blink"><ellipse cx="57.5" cy="77" rx="4.67" ry="5.95" fill="#6FF3FF"/>
+    <circle cx="58.9" cy="74.92" r="1.31" fill="#fff"/>
+    <ellipse cx="82.5" cy="77" rx="4.67" ry="5.95" fill="#6FF3FF"/>
+    <circle cx="83.9" cy="74.92" r="1.31" fill="#fff"/></g>
+  <path d="M63 104Q66.5 101 70 104Q73.5 107 77 104" fill="none" stroke="#22314A" stroke-width="2.8" stroke-linecap="round"/>
+  <g class="sweat">
+    <path d="M104 47Q110 55 104 58Q98 55 104 47Z" fill="#9AD8FF" stroke="#22314A" stroke-width="2" stroke-linejoin="round"/>
+    <path d="M102.5 53Q102 55 103.5 56" fill="none" stroke="#fff" stroke-width="1.4" stroke-linecap="round"/>
+  </g>
+</g>
+</svg>

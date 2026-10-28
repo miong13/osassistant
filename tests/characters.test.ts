@@ -10,7 +10,11 @@ describe('CharacterLibrary', () => {
     const { characters, errors } = lib.load()
     expect(errors).toEqual([])
     expect(characters.map((c) => c.id).sort()).toEqual(['bolt', 'geek', 'mochi', 'ninja', 'scientist', 'sticky'])
-    for (const c of characters) expect(c.states.idle.type).toBe('image')
+    for (const c of characters) {
+      // Every built-in character has its own art for every state.
+      for (const state of ['idle', 'greet', 'listen', 'think', 'talk', 'tip', 'sleep', 'error'] as const)
+        expect(c.states[state]?.type, `${c.id} ${state}`).toBe('image')
+    }
   })
 
   it('reports broken packs instead of crashing', () => {

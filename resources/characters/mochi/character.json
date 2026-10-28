@@ -22,6 +22,9 @@
     "think": "think.svg",
     "talk": "talk.svg",
     "sleep": "sleep.svg",
-    "greet": "greet.svg"
+    "greet": "greet.svg",
+    "listen": "listen.svg",
+    "error": "error.svg",
+    "tip": "tip.svg"
   }
 }

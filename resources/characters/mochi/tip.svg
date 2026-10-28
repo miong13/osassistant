@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="140" height="140" viewBox="0 0 140 140">
+<style>
+.t{transform-box:fill-box;transform-origin:center}
+.tb{transform-box:fill-box;transform-origin:50% 100%}
+.char{animation:bob 3.2s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+.shadow{animation:sh 3.2s ease-in-out infinite}
+@keyframes sh{0%,100%{transform:scaleX(1);opacity:.2}50%{transform:scaleX(.9);opacity:.14}}
+.sprout{transform-box:fill-box;transform-origin:30% 100%;animation:sway 3.2s ease-in-out infinite}
+@keyframes sway{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(5deg)}}
+.blink{animation:blink 4s infinite}
+@keyframes blink{0%,91%,100%{transform:scaleY(1)}94%{transform:scaleY(.1)}97%{transform:scaleY(1)}}
+.char{animation-name:squishi}
+@keyframes squishi{0%,100%{transform:scale(1,1)}50%{transform:scale(1.03,.96)}}
+.bulb{animation:glow 1.2s ease-in-out infinite}
+@keyframes glow{0%,100%{fill:#FFE066}50%{fill:#FFF7C9}}
+.rays{animation:ray 1.2s ease-in-out infinite}
+@keyframes ray{0%,100%{opacity:.35}50%{opacity:1}}
+.bob2{animation:bob2 1.2s ease-in-out infinite}
+@keyframes bob2{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+</style>
+<ellipse class="t shadow" cx="70" cy="125" rx="44" ry="5" fill="#000" opacity=".2"/>
+<g class="tb char">
+  <g class="sprout">
+    <path d="M70 49Q69 42 71 36" fill="none" stroke="#A45070" stroke-width="3" stroke-linecap="round"/>
+    <path d="M71 37C64 26 52 28 53 35C55 41 65 41 71 37Z" fill="#9EDBA8" stroke="#A45070" stroke-width="2.5" stroke-linejoin="round"/>
+    <path d="M71 37C76 25 89 25 89 32C88 39 78 40 71 37Z" fill="#B7E8BE" stroke="#A45070" stroke-width="2.5" stroke-linejoin="round"/>
+  </g>
+  <ellipse cx="21" cy="96" rx="7" ry="9" fill="#FFD9E4" stroke="#A45070" stroke-width="3"/>
+  <ellipse cx="119" cy="96" rx="7" ry="9" fill="#FFD9E4" stroke="#A45070" stroke-width="3"/>
+  <path d="M22 110C18 80 38 48 70 48C102 48 122 80 118 110C116 119 24 119 22 110Z" fill="#FFD9E4" stroke="#A45070" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M30 108Q70 113 110 108Q110 114 70 115Q30 114 30 108Z" fill="#E8A9BE" opacity=".45"/>
+  <ellipse cx="52" cy="64" rx="13" ry="7" fill="#fff" opacity=".7" transform="rotate(-25 52 64)"/>
+  <ellipse cx="42" cy="93" rx="8" ry="4.5" fill="#FF8FAE" opacity=".6"/>
+  <ellipse cx="98" cy="93" rx="8" ry="4.5" fill="#FF8FAE" opacity=".6"/>
+  <path d="M50 70Q56 66 62 70M78 70Q84 66 90 70" fill="none" stroke="#A45070" stroke-width="2.6" stroke-linecap="round"/>
+  <g><path d="M50.5 84Q56 75.5 61.5 84" fill="none" stroke="#3A2530" stroke-width="3.2" stroke-linecap="round"/>
+    <path d="M78.5 84Q84 75.5 89.5 84" fill="none" stroke="#3A2530" stroke-width="3.2" stroke-linecap="round"/></g>
+  <path d="M62 91Q70 93 78 91Q77 101 70 101Q63 101 62 91Z" fill="#8A3A5A" stroke="#A45070" stroke-width="2.5" stroke-linejoin="round"/>
+</g>
+<g class="rays" fill="none" stroke="#FFC93C" stroke-width="2.5" stroke-linecap="round">
+  <path d="M22 16V12M11 21L8 18M33 21L36 18M8 31H4M36 31H40"/>
+</g>
+<g class="t bob2">
+  <circle class="bulb" cx="22" cy="30" r="9" fill="#FFE066" stroke="#A45070" stroke-width="2.5"/>
+  <path d="M19 32L20.5 27L22 31L23.5 27L25 32" fill="none" stroke="#D99A00" stroke-width="1.5" stroke-linejoin="round"/>
+  <rect x="17.5" y="38" width="9" height="6" rx="1.5" fill="#C3CBD8" stroke="#A45070" stroke-width="2"/>
+</g>
+</svg>
