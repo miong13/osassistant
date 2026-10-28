@@ -45,6 +45,43 @@ export function normalizeHistory(messages: ChatMessage[]): ChatMessage[] {
   return out
 }
 
+/** Rough size of a message as sent to a model, in characters (about 4 per token). */
+export function messageSize(m: ChatMessage): number {
+  return JSON.stringify(m.parts).length + (m.raw ? JSON.stringify(m.raw.content).length : 0)
+}
+
+/** When history is over budget, it is cut down to this share of it, so the cut point stays put for a while. */
+const REFILL = 0.6
+
+/**
+ * Keep the newest part of a chat that fits in `budget` characters. Cuts only right before a user
+ * message, so tool calls stay paired with their results, and always keeps the latest user message.
+ * `startId` is the first message kept last time: reusing it keeps the start of the history stable,
+ * which lets providers reuse their prompt cache.
+ */
+export function fitHistory(
+  messages: ChatMessage[],
+  budget: number,
+  startId?: string
+): { messages: ChatMessage[]; trimmed: boolean } {
+  const turnStarts = messages.flatMap((m, i) => (m.role === 'user' ? [i] : []))
+  if (!turnStarts.length) return { messages, trimmed: false }
+  const sizes = messages.map(messageSize)
+  const sizeFrom = (i: number) => sizes.slice(i).reduce((a, b) => a + b, 0)
+
+  const prev = startId ? messages.findIndex((m) => m.id === startId) : -1
+  let start = prev > 0 && turnStarts.includes(prev) ? prev : 0
+  if (sizeFrom(start) > budget) {
+    const last = turnStarts[turnStarts.length - 1]
+    for (const t of turnStarts) {
+      if (t <= start) continue
+      start = t
+      if (t === last || sizeFrom(t) <= budget * REFILL) break
+    }
+  }
+  return start === 0 ? { messages, trimmed: false } : { messages: messages.slice(start), trimmed: true }
+}
+
 export function textOf(parts: ChatPart[]): string {
   return parts
     .filter((p): p is Extract<ChatPart, { type: 'text' }> => p.type === 'text')

@@ -30,6 +30,8 @@ export function toOllamaMessages(system: string, messages: ChatMessage[]): Messa
   return out
 }
 
+export const OLLAMA_CONTEXT_TOKENS = 8192
+
 export class OllamaProvider implements ChatProvider {
   private client: Ollama
 
@@ -63,6 +65,9 @@ export class OllamaProvider implements ChatProvider {
       model: req.model,
       messages: toOllamaMessages(req.system, req.messages),
       ...(tools.length ? { tools } : {}),
+      // Ollama's default context is small and it silently drops the start of the prompt (including
+      // the system prompt) when it overflows. Set it explicitly; history is trimmed to fit.
+      options: { num_ctx: OLLAMA_CONTEXT_TOKENS },
       stream: true
     })
     const onAbort = () => response.abort()

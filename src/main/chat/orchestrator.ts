@@ -10,6 +10,8 @@ import type {
   Settings
 } from '../../shared/types'
 import type { ToolHost } from '../mcp/manager'
+import { fitHistory } from '../providers/history'
+import { historyBudget } from '../providers/index'
 import type { ChatProvider } from '../providers/types'
 import type { ChatStore } from '../store/chatStore'
 import { buildSystemPrompt, makeTitle } from './systemPrompt'
@@ -37,6 +39,8 @@ export class Orchestrator {
   private approvals = new Map<string, { conversationId: string; resolve: (d: ApprovalDecision) => void }>()
   private ajv = new Ajv({ strict: false, allErrors: false })
   private validators = new Map<string, ValidateFunction | null>()
+  /** First message sent last time, per conversation, so trimmed history keeps a stable start. */
+  private historyStart = new Map<string, string>()
 
   constructor(private deps: OrchestratorDeps) {}
 
@@ -131,8 +135,11 @@ export class Orchestrator {
     const settings = this.deps.getSettings()
 
     let provider: ChatProvider
+    let budget: number
     try {
-      provider = this.deps.getProvider(settings.activeProviderId).provider
+      const p = this.deps.getProvider(settings.activeProviderId)
+      provider = p.provider
+      budget = historyBudget(p.config)
     } catch (err) {
       emit({ type: 'error', conversationId: convId, message: err instanceof Error ? err.message : String(err) })
       return
@@ -151,13 +158,16 @@ export class Orchestrator {
       let streamed = ''
       emit({ type: 'thinking', conversationId: convId, active: true })
 
+      const history = fitHistory(store.getMessages(convId), budget, this.historyStart.get(convId))
+      if (history.messages[0]) this.historyStart.set(convId, history.messages[0].id)
+
       let result
       try {
         result = await provider.stream(
           {
             model: settings.activeModel,
-            system,
-            messages: store.getMessages(convId),
+            system: history.trimmed ? `${system}\n\n${TRIMMED_NOTE}` : system,
+            messages: history.messages,
             tools,
             effort: settings.effort,
             signal
@@ -316,6 +326,9 @@ export class Orchestrator {
     return this.ajv.errorsText(fn.errors, { dataVar: 'input' })
   }
 }
+
+const TRIMMED_NOTE =
+  'This is a long chat, so its oldest messages were left out to save space. If the user refers to something you can no longer see, say so and ask them to repeat it.'
 
 function errorResult(call: ToolCall, message: string): ChatPart {
   return { type: 'tool_result', toolCallId: call.id, name: call.name, content: message, isError: true }
