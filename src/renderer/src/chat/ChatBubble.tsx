@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import type { QuickActionsRequest } from '../../../shared/api'
 import { QUICK_ACTIONS } from '../../../shared/quickActions'
-import type { CharacterInfo, ModelInfo, ProviderView, Rect, Settings } from '../../../shared/types'
+import type { CharacterInfo, Rect, Settings } from '../../../shared/types'
 import { IconBack, IconClose, IconGear, IconHistory, IconMic, IconPaperclip, IconPlus, IconScreen, IconSend, IconStop } from '../lib/icons'
 import { type DraftImage, fromBase64, prepareImage, toBase64 } from './images'
 import { BubbleFrame } from './BubbleFrame'
 import { HistoryPanel } from './HistoryPanel'
 import { MessageList } from './MessageList'
+import { ModelPicker } from './ModelPicker'
 import type { useChat } from './useChat'
 
 const MAX_IMAGES = 4
@@ -362,58 +363,6 @@ export function ChatBubble(props: {
         </>
       )}
     </BubbleFrame>
-  )
-}
-
-function ModelPicker({ settings }: { settings: Settings }) {
-  const [groups, setGroups] = useState<{ provider: ProviderView; models: ModelInfo[] }[]>([])
-
-  useEffect(() => {
-    let cancelled = false
-    void (async () => {
-      const providers = (await window.api.listProviders()).filter((p) => p.enabled)
-      const loaded = await Promise.all(
-        providers.map(async (provider) => ({
-          provider,
-          models: await window.api.listModels(provider.id).catch(() => [] as ModelInfo[])
-        }))
-      )
-      if (!cancelled) setGroups(loaded)
-    })()
-    return () => {
-      cancelled = true
-    }
-  }, [settings.providers])
-
-  const value = `${settings.activeProviderId}::${settings.activeModel}`
-  const known = groups.some((g) => g.provider.id === settings.activeProviderId && g.models.some((m) => m.id === settings.activeModel))
-
-  return (
-    <select
-      className="model-select"
-      title="Model"
-      value={value}
-      onChange={(e) => {
-        const [activeProviderId, ...rest] = e.target.value.split('::')
-        void window.api.updateSettings({ activeProviderId, activeModel: rest.join('::') })
-      }}
-    >
-      {!known && <option value={value}>{settings.activeModel || 'Choose a model'}</option>}
-      {groups.map((g) => (
-        <optgroup key={g.provider.id} label={g.provider.label}>
-          {g.models.length === 0 && (
-            <option disabled value="">
-              {g.provider.kind === 'anthropic' && !g.provider.hasApiKey ? 'Add an API key in Settings' : 'No models found'}
-            </option>
-          )}
-          {g.models.map((m) => (
-            <option key={m.id} value={`${g.provider.id}::${m.id}`}>
-              {m.label}
-            </option>
-          ))}
-        </optgroup>
-      ))}
-    </select>
   )
 }
 
