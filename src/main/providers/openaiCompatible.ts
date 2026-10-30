@@ -48,31 +48,74 @@ export function toOpenAIMessages(system: string, messages: ChatMessage[]): ChatC
   return out
 }
 
+/** A model as a service's /models endpoint lists it. Some services add fields beyond the id. */
+export interface ListedModel {
+  id: string
+  [field: string]: unknown
+}
+
+function hostOf(baseUrl: string): string {
+  try {
+    return new URL(baseUrl).hostname
+  } catch {
+    return ''
+  }
+}
+
+const isOpenCode = (baseUrl: string) => {
+  const host = hostOf(baseUrl)
+  return host === 'opencode.ai' || host.endsWith('.opencode.ai')
+}
+
+/** OpenCode lists prices per model; a model that costs nothing in and out is free. */
+function isFree(m: ListedModel): boolean {
+  const text = (m.cost as { text?: { input?: { price?: unknown }; output?: { price?: unknown } } } | undefined)?.text
+  return text?.input?.price === 0 && text?.output?.price === 0
+}
+
 /**
  * Some services list models that can't be used for chat here. Returns a function that maps a listed
- * model id to the id to use for chat, or null to hide it. Returns null when every model can be used.
+ * model to how it's shown and used, or null to hide it. Returns null when every model can be used.
  */
-export function chatModelFilter(baseUrl: string): ((id: string) => string | null) | null {
-  let host = ''
-  try {
-    host = new URL(baseUrl).hostname
-  } catch {
-    return null
-  }
-  // OpenCode Zen / Go: Claude, GPT, Gemini, Grok etc. use other formats, and free models only work inside OpenCode.
-  if (host === 'opencode.ai' || host.endsWith('.opencode.ai')) {
-    return (id) => (/^(deepseek|glm|kimi|minimax|mistral|qwen3\.8-max)/.test(id) && !id.endsWith('-free') ? id : null)
+export function chatModelFilter(baseUrl: string): ((m: ListedModel) => ModelInfo | null) | null {
+  // OpenCode Zen / Go: every chat model works through chat completions (OpenCode translates other formats).
+  // Zen's free models only work in the OpenCode app; they're listed anyway and refused with a clear message.
+  if (isOpenCode(baseUrl)) {
+    return (m) => {
+      if (m.type !== undefined && m.type !== 'chat') return null
+      const name = typeof m.name === 'string' && m.name ? m.name : m.id
+      return { id: m.id, label: isFree(m) && !/\bfree\b/i.test(name) ? `${name} (free)` : name }
+    }
   }
   // Google Gemini: ids come as "models/gemini-…", and the list includes embedding, image, speech and video models.
-  if (host === 'generativelanguage.googleapis.com') {
-    return (listed) => {
-      const id = listed.replace(/^models\//, '')
+  if (hostOf(baseUrl) === 'generativelanguage.googleapis.com') {
+    return (m) => {
+      const id = m.id.replace(/^models\//, '')
       return id.startsWith('gemini-') && !/embedding|image|tts|audio|live|veo|imagen|computer-use|robotics/.test(id)
-        ? id
+        ? { id, label: id }
         : null
     }
   }
   return null
+}
+
+/** Longest "try again in…" wait worth sitting through; anything longer fails right away instead. */
+const MAX_RETRY_WAIT_MS = 60_000
+
+/**
+ * The OpenAI SDK waits as long as a Retry-After header says before retrying, even hours (OpenCode's
+ * free-model limit sends ~12 h). This marks such responses as not worth retrying so the error shows now.
+ */
+export async function fetchWithoutLongWaits(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
+  const res = await fetch(input, init)
+  const header = res.headers.get('retry-after')
+  if (!header) return res
+  const seconds = Number(header)
+  const waitMs = Number.isFinite(seconds) ? seconds * 1000 : Date.parse(header) - Date.now()
+  if (!(waitMs > MAX_RETRY_WAIT_MS)) return res
+  const headers = new Headers(res.headers)
+  headers.set('x-should-retry', 'false')
+  return new Response(res.body, { status: res.status, statusText: res.statusText, headers })
 }
 
 /** Works with any service that speaks the OpenAI chat-completions format (LM Studio, OpenRouter, Groq...). */
@@ -84,7 +127,13 @@ export class OpenAICompatibleProvider implements ChatProvider {
     apiKey: string | undefined,
     private extraModels: string[] = []
   ) {
-    this.client = new OpenAI({ baseURL: baseUrl, apiKey: apiKey || 'not-needed' })
+    this.client = new OpenAI({
+      baseURL: baseUrl,
+      apiKey: apiKey || 'not-needed',
+      fetch: fetchWithoutLongWaits,
+      // OpenCode asks apps to name themselves rather than send a generic SDK name.
+      ...(isOpenCode(baseUrl) ? { defaultHeaders: { 'User-Agent': `os-assistant/${__APP_VERSION__}` } } : {})
+    })
   }
 
   async listModels(): Promise<ModelInfo[]> {
@@ -93,8 +142,8 @@ export class OpenAICompatibleProvider implements ChatProvider {
       const listed: ModelInfo[] = []
       const usable = chatModelFilter(this.baseUrl)
       for await (const m of this.client.models.list()) {
-        const id = usable ? usable(m.id) : m.id
-        if (id) listed.push({ id, label: id })
+        const info = usable ? usable(m as unknown as ListedModel) : { id: m.id, label: m.id }
+        if (info) listed.push(info)
       }
       return [...extra, ...listed.filter((m) => !this.extraModels.includes(m.id))]
     } catch (err) {
@@ -115,7 +164,13 @@ export class OpenAICompatibleProvider implements ChatProvider {
         ...(tools.length ? { tools } : {}),
         stream: true
       },
-      { signal: req.signal }
+      {
+        signal: req.signal,
+        // OpenCode Go refuses requests without a stable session id per conversation.
+        ...(isOpenCode(this.baseUrl) && req.conversationId
+          ? { headers: { 'x-opencode-session': req.conversationId } }
+          : {})
+      }
     )
     let text = ''
     let finish = ''
@@ -164,6 +219,8 @@ export class OpenAICompatibleProvider implements ChatProvider {
   describeError(err: unknown): string {
     if (err instanceof OpenAI.AuthenticationError) return 'The API key for this provider was rejected.'
     if (err instanceof OpenAI.NotFoundError) return 'Model or endpoint not found. Check the base URL and model.'
+    if (err instanceof OpenAI.APIError && err.type === 'FreeUsageLimitError')
+      return "OpenCode only allows Zen's free models inside the OpenCode app. Pick a paid model, or use OpenCode Go, whose free models work here."
     if (err instanceof OpenAI.RateLimitError) return 'The service is rate-limiting requests. Try again soon.'
     if (err instanceof OpenAI.APIConnectionError) return `Could not reach ${this.baseUrl}.`
     return genericErrorMessage(err)

@@ -237,7 +237,8 @@ export class Orchestrator {
             messages: this.deps.attachments ? this.deps.attachments.hydrate(history.messages) : history.messages,
             tools,
             effort: settings.effort,
-            signal
+            signal,
+            conversationId: convId
           },
           {
             onText: (text) => {

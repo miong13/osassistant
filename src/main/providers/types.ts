@@ -13,6 +13,8 @@ export interface StreamRequest {
   tools: ToolDef[]
   effort: Effort
   signal: AbortSignal
+  /** Stable per conversation; some services use it for routing and caching. */
+  conversationId?: string
 }
 
 export interface StreamHandlers {
