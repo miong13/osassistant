@@ -40,7 +40,9 @@ npm install
 npm run dev        # development, with hot reload
 npm test           # unit tests
 npm run typecheck
-npm run dist:mac   # build a .dmg in dist/ (dist:win for Windows)
+npm run dist:mac   # Mac installers (.dmg + .zip) in dist/
+npm run dist:win   # Windows installer in dist/
+npm run dist:all   # both of the above
 ```
 
 The app lives in the menu bar (tray). Default hotkey: **Option+Space** (Alt+Space on Windows).
@@ -90,6 +92,16 @@ my-buddy/
 ```
 
 States: `idle` (required), `greet`, `listen`, `think`, `talk`, `tip`, `sleep`, `error`. Missing states fall back to similar ones, then to `idle`. Images can be animated SVG (CSS animations inside the SVG), GIF, APNG, WebP, or a horizontal sprite sheet.
+
+## Building installers locally
+
+| Command | Builds |
+| --- | --- |
+| `npm run dist:mac` | Mac `.dmg` and `.zip` (Apple Silicon and Intel) |
+| `npm run dist:win` | Windows installer (`OS-Assistant-Setup-<version>.exe`) |
+| `npm run dist:all` | Both of the above |
+
+Installers are written to `dist/`. A Mac can build both; Windows can only build the Windows installer. Local builds are for testing: releases are built by GitHub Actions (see below).
 
 ## Releasing
 

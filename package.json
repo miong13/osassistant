@@ -13,6 +13,7 @@
     "test": "vitest run",
     "dist:mac": "electron-vite build && electron-builder --mac",
     "dist:win": "electron-vite build && electron-builder --win",
+    "dist:all": "electron-vite build && electron-builder --mac --win",
     "gen:icons": "node scripts/gen-icons.mjs"
   },
   "dependencies": {
