@@ -1,7 +1,7 @@
 {
   "name": "os-assistant",
   "productName": "OS Assistant",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "A floating desktop character you can chat with.",
   "main": "./out/main/index.js",
   "private": true,
